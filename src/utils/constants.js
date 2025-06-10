@@ -99,4 +99,6 @@ export const CLIENT_STATUS = {
 };
 
 // Debug logging to see what URL is being used
-console.log('API_BASE_URL:', API_BASE_URL);
+if (import.meta.env.MODE !== 'production') {
+  console.log('API_BASE_URL:', API_BASE_URL);
+}

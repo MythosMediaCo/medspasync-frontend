@@ -49,7 +49,9 @@ export const useWebSocket = (originalUrl, options = {}) => {
     if (requiresAuth && (!isAuthenticated || !user || authLoading)) {
       setConnectionStatus('Waiting for authentication...');
       setReadyState(WebSocket.CLOSED);
-      console.log('WebSocket: Waiting for authentication before connecting.');
+      if (import.meta.env.MODE !== 'production') {
+        console.log('WebSocket: Waiting for authentication before connecting.');
+      }
       return;
     }
 
@@ -81,7 +83,9 @@ export const useWebSocket = (originalUrl, options = {}) => {
         setConnectionStatus('Open');
         reconnectCount.current = 0;
         if (onOpen) onOpen(event);
-        console.log('WebSocket: Connected successfully to', wsUrl);
+        if (import.meta.env.MODE !== 'production') {
+          console.log('WebSocket: Connected successfully to', wsUrl);
+        }
       };
 
       ws.onclose = (event) => {
@@ -89,12 +93,18 @@ export const useWebSocket = (originalUrl, options = {}) => {
         setReadyState(WebSocket.CLOSED);
         setConnectionStatus('Closed');
         if (onClose) onClose(event);
-        console.log('WebSocket: Connection closed.', event.code, event.reason);
+        if (import.meta.env.MODE !== 'production') {
+          console.log('WebSocket: Connection closed.', event.code, event.reason);
+        }
 
         if (shouldReconnect && reconnectCount.current < reconnectAttempts && !event.wasClean) {
           reconnectCount.current++;
           setConnectionStatus(`Reconnecting (Attempt ${reconnectCount.current}/${reconnectAttempts})...`);
-          console.log(`WebSocket: Reconnecting (Attempt ${reconnectCount.current})...`);
+          if (import.meta.env.MODE !== 'production') {
+            console.log(
+              `WebSocket: Reconnecting (Attempt ${reconnectCount.current})...`
+            );
+          }
           reconnectTimeoutId.current = setTimeout(() => {
             if (isMounted.current) connect();
           }, reconnectInterval);

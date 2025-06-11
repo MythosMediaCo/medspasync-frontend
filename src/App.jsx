@@ -2,21 +2,19 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from './services/AuthContext.jsx';
 import PublicRoute from './components/auth/PublicRoute.jsx';
-import PublicRoute from './components/Auth/PublicRoute.jsx';
+import PrivateRoute from './components/auth/ProtectedRoute.jsx';
 import Toast from './components/Common/Toast.jsx';
+import LoadingScreen from './components/Common/LoadingScreen.jsx';
 
-import LandingPage from './pages/LandingPage.jsx';
+const LandingPage = lazy(() => import('./pages/LandingPage.jsx'));
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import SupportPage from './pages/SupportPage.jsx';
 import DocsPage from './pages/DocsPage.jsx';
+import NotFoundPage from './pages/NotFoundPage.jsx';
 
 const DashboardPage = lazy(() => import('./pages/Dashboard.jsx'));
-const ClientsPage = lazy(() => import('./pages/ClientsPage.jsx'));
-const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage.jsx'));
-const ServicesPage = lazy(() => import('./pages/ServicesPage.jsx'));
 const DemoReconciliation = lazy(() => import('./pages/DemoReconciliation.jsx'));
-const ReconciliationRunner = lazy(() => import('./components/ReconciliationRunner.jsx'));
 
 function AppContent() {
   const { isLoading } = useAuth();
@@ -30,7 +28,16 @@ function AppContent() {
       <Toast />
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+        <Route
+          path="/"
+          element={
+            <PublicRoute>
+              <Suspense fallback={<LoadingScreen />}>
+                <LandingPage />
+              </Suspense>
+            </PublicRoute>
+          }
+        />
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
         <Route path="/support" element={<PublicRoute><SupportPage /></PublicRoute>} />
@@ -45,7 +52,21 @@ function AppContent() {
             </PublicRoute>
           }
         />
-        {/* Additional authenticated/private routes can be added below */}
+
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Suspense fallback={<LoadingScreen />}>
+                <DashboardPage />
+              </Suspense>
+            </PrivateRoute>
+          }
+        />
+
+        {/* 404 Fallback */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
   );

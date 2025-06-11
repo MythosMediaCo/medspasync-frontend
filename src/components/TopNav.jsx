@@ -1,29 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../services/AuthContext.jsx';
+import { useThemeMode } from '../hooks/useThemeMode.js';
 
 const TopNav = () => {
   const navigate = useNavigate();
   const { isAuthenticated, firstName, logout } = useAuth();
 
-  const [darkMode, setDarkMode] = useState(() => {
-    const stored = localStorage.getItem('darkMode');
-    if (stored) return stored === 'true';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  const { darkMode, toggleDarkMode } = useThemeMode();
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
-    }
-  }, [darkMode]);
 
   const handleLogout = async () => {
     await logout();
@@ -44,7 +31,7 @@ const TopNav = () => {
         </div>
         <div className="relative flex items-center space-x-4">
           <button
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={toggleDarkMode}
             className="text-sm px-3 py-1 border rounded-lg border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             aria-label={`Switch to ${darkMode ? 'light' : 'dark'} mode`}
           >

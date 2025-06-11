@@ -21,6 +21,8 @@ import AppointmentsPage from './pages/AppointmentsPage.jsx';
 import ServicesPage from './pages/ServicesPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import DemoReconciliation from './pages/DemoReconciliation.jsx';
+import SupportPage from './pages/SupportPage.jsx';
+import DocsPage from './pages/DocsPage.jsx';
 import ReconciliationRunner from './components/ReconciliationRunner';
 
 function AppContent() {
@@ -39,6 +41,8 @@ function AppContent() {
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
         <Route path="/demo" element={<PublicRoute><DemoReconciliation /></PublicRoute>} />
+        <Route path="/support" element={<PublicRoute><SupportPage /></PublicRoute>} />
+        <Route path="/docs" element={<PublicRoute><DocsPage /></PublicRoute>} />
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={<ProtectedRoute requiredRoles={['admin', 'manager', 'staff', 'receptionist']}><DashboardPage /></ProtectedRoute>} />

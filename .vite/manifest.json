@@ -1,0 +1,18 @@
+{
+  "_react-Dah7rJhZ.js": {
+    "file": "assets/react-Dah7rJhZ.js",
+    "name": "react"
+  },
+  "index.html": {
+    "file": "assets/index-Dqnteddi.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_react-Dah7rJhZ.js"
+    ],
+    "css": [
+      "assets/index-BSIZaRQT.css"
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "timestamp": "2025-06-24T23:30:15.309386",
+  "summary": {
+    "total_tests": 5,
+    "passed": 5,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "results": [
+    {
+      "test": "confidence_scorer",
+      "status": "PASS",
+      "confidence": 1.0
+    },
+    {
+      "test": "single_prediction",
+      "status": "PASS",
+      "result": "no_match",
+      "confidence": 0.6000000000000001
+    },
+    {
+      "test": "system_health",
+      "status": "PASS",
+      "system_status": "healthy"
+    },
+    {
+      "test": "model_metrics",
+      "status": "PASS",
+      "model_version": "1.0.0-simple"
+    },
+    {
+      "test": "batch_reconciliation",
+      "status": "PASS",
+      "total_transactions": 4,
+      "matches_found": 1
+    }
+  ]
+}

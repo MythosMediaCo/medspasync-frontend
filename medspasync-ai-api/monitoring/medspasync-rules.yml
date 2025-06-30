@@ -1,0 +1,226 @@
+groups:
+  - name: medspasync-system
+    rules:
+      # System Health Alerts
+      - alert: HighCPUUsage
+        expr: medspasync_system_cpu_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (medspasync_system_memory_bytes{type="used"} / medspasync_system_memory_bytes{type="total"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 5 minutes"
+
+      - alert: SystemDown
+        expr: up{job="medspasync-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MedSpaSync backend is down"
+          description: "The backend service has been down for more than 1 minute"
+
+      - alert: SystemUptimeLow
+        expr: medspasync_system_uptime_seconds < 300
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "System recently restarted"
+          description: "System uptime is less than 5 minutes"
+
+  - name: medspasync-api
+    rules:
+      # API Performance Alerts
+      - alert: HighAPIErrorRate
+        expr: rate(medspasync_api_requests_total{status_code=~"5.."}[5m]) / rate(medspasync_api_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High API error rate detected"
+          description: "More than 5% of API requests are returning 5xx errors"
+
+      - alert: SlowAPIResponse
+        expr: histogram_quantile(0.95, rate(medspasync_api_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow API response times detected"
+          description: "95th percentile of API response times is above 2 seconds"
+
+      - alert: APIRequestSpike
+        expr: rate(medspasync_api_requests_total[1m]) / rate(medspasync_api_requests_total[5m]) > 3
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unusual API request spike detected"
+          description: "API request rate has increased by more than 3x in the last minute"
+
+  - name: medspasync-business
+    rules:
+      # Business Metrics Alerts
+      - alert: LowReconciliationAccuracy
+        expr: medspasync_reconciliation_accuracy < 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low reconciliation accuracy detected"
+          description: "Reconciliation accuracy has dropped below 85%"
+
+      - alert: NoReconciliationJobs
+        expr: rate(medspasync_reconciliation_jobs_total[15m]) == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No reconciliation jobs processed"
+          description: "No reconciliation jobs have been processed in the last 15 minutes"
+
+      - alert: HighFailedTransactions
+        expr: rate(medspasync_transactions_processed_total{status="failed"}[5m]) / rate(medspasync_transactions_processed_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High transaction failure rate"
+          description: "More than 10% of transactions are failing"
+
+      - alert: LowActiveUsers
+        expr: medspasync_active_users < 1
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No active users detected"
+          description: "No active users for more than 30 minutes"
+
+  - name: medspasync-security
+    rules:
+      # Security Alerts
+      - alert: HighSecurityEvents
+        expr: rate(medspasync_security_events_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High number of security events detected"
+          description: "More than 10 security events per minute"
+
+      - alert: HighFailedAuthAttempts
+        expr: rate(medspasync_auth_attempts_total{status="failed"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of failed authentication attempts"
+          description: "More than 5 failed authentication attempts per minute"
+
+      - alert: CriticalSecurityEvent
+        expr: medspasync_security_events_total{severity="critical"} > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical security event detected"
+          description: "A critical security event has been detected"
+
+  - name: medspasync-infrastructure
+    rules:
+      # Infrastructure Alerts
+      - alert: RedisConnectionIssues
+        expr: medspasync_redis_connections == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis connection issues detected"
+          description: "No Redis connections available"
+
+      - alert: HighRedisMemoryUsage
+        expr: medspasync_redis_memory_bytes > 1073741824
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is above 1GB"
+
+      - alert: WebSocketConnectionIssues
+        expr: medspasync_websocket_connections == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No WebSocket connections"
+          description: "No active WebSocket connections for more than 5 minutes"
+
+      - alert: DatabaseConnectionIssues
+        expr: medspasync_database_connections == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection issues detected"
+          description: "No database connections available"
+
+  - name: medspasync-customer
+    rules:
+      # Customer Experience Alerts
+      - alert: LowCustomerSatisfaction
+        expr: medspasync_customer_satisfaction_score < 70
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low customer satisfaction score"
+          description: "Customer satisfaction score is below 70"
+
+      - alert: NoRevenueProcessed
+        expr: rate(medspasync_revenue_processed_total[1h]) == 0
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "No revenue processed"
+          description: "No revenue has been processed in the last hour"
+
+# Recording Rules for pre-computed metrics
+  - name: medspasync-recording
+    rules:
+      # Pre-computed business metrics
+      - record: medspasync:api_success_rate
+        expr: rate(medspasync_api_requests_total{status_code=~"2.."}[5m]) / rate(medspasync_api_requests_total[5m])
+
+      - record: medspasync:api_error_rate
+        expr: rate(medspasync_api_requests_total{status_code=~"5.."}[5m]) / rate(medspasync_api_requests_total[5m])
+
+      - record: medspasync:reconciliation_success_rate
+        expr: rate(medspasync_reconciliation_jobs_total{status="success"}[5m]) / rate(medspasync_reconciliation_jobs_total[5m])
+
+      - record: medspasync:transaction_success_rate
+        expr: rate(medspasync_transactions_processed_total{status="success"}[5m]) / rate(medspasync_transactions_processed_total[5m])
+
+      - record: medspasync:auth_success_rate
+        expr: rate(medspasync_auth_attempts_total{status="success"}[5m]) / rate(medspasync_auth_attempts_total[5m])
+
+      - record: medspasync:system_memory_usage_percent
+        expr: (medspasync_system_memory_bytes{type="used"} / medspasync_system_memory_bytes{type="total"}) * 100
+
+      - record: medspasync:revenue_per_hour
+        expr: rate(medspasync_revenue_processed_total[1h])
+
+      - record: medspasync:transactions_per_minute
+        expr: rate(medspasync_transactions_processed_total[1m]) 

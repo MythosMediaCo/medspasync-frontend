@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # AI Reconciliation Engine - Development
+  ai-engine:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - MAX_WORKERS=2
+      - BATCH_SIZE=50
+      - MODEL_THRESHOLD=0.95
+      - HIPAA_COMPLIANCE_MODE=false
+      - DATA_ENCRYPTION_ENABLED=false
+      - AUDIT_LOGGING_ENABLED=false
+      - CORS_ORIGINS=*
+      - RATE_LIMIT_ENABLED=false
+      - PROMETHEUS_ENABLED=false
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+      - ./backups:/app/backups
+      - .:/app  # Mount source code for hot reload
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/quick"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ai-kingdom
+
+  # Database - Development
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: medspa_ai_dev
+      POSTGRES_USER: ai_king
+      POSTGRES_PASSWORD: kingdom_secure_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Redis - Development
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Development Tools
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Adminer for database management
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+
+networks:
+  ai-kingdom:
+    driver: bridge 

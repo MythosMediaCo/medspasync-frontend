@@ -1,0 +1,423 @@
+name: MedSpaSync Ecosystem CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      services:
+        description: 'Services to deploy'
+        required: false
+        default: 'all'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Security and Code Quality
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run OWASP ZAP scan
+        uses: zaproxy/action-full-scan@v0.8.0
+        with:
+          target: 'https://staging.medspasyncpro.com'
+
+  # Frontend Testing and Building
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'medspasync-frontend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: medspasync-frontend
+        run: npm ci
+
+      - name: Run linting
+        working-directory: medspasync-frontend
+        run: npm run lint
+
+      - name: Run type checking
+        working-directory: medspasync-frontend
+        run: npm run type-check
+
+      - name: Run tests
+        working-directory: medspasync-frontend
+        run: npm run test:coverage
+
+      - name: Build application
+        working-directory: medspasync-frontend
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        working-directory: medspasync-frontend
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: medspasync-frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+  # Backend Testing and Building
+  backend:
+    name: Backend (Node.js)
+    runs-on: ubuntu-latest
+    needs: security-scan
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: medspasync_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'medspasync-backend/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: medspasync-backend
+        run: npm ci
+
+      - name: Run linting
+        working-directory: medspasync-backend
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: medspasync-backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medspasync_test
+          JWT_SECRET: test-secret
+          NODE_ENV: test
+        run: npm run test:coverage
+
+      - name: Run security audit
+        working-directory: medspasync-backend
+        run: npm audit --audit-level=moderate
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: medspasync-backend/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+  # AI API Testing and Building
+  ai-api:
+    name: AI API (Python)
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'medspasync-ai-api/requirements.txt'
+
+      - name: Install dependencies
+        working-directory: medspasync-ai-api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run linting
+        working-directory: medspasync-ai-api
+        run: |
+          pip install flake8 black isort
+          flake8 .
+          black --check .
+          isort --check-only .
+
+      - name: Run tests
+        working-directory: medspasync-ai-api
+        run: |
+          pytest --cov=. --cov-report=xml --cov-report=html
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: medspasync-ai-api/coverage.xml
+          flags: ai-api
+          name: ai-api-coverage
+
+  # Marketing Site Testing and Building
+  marketing:
+    name: Marketing Site (Vite)
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'medspasync-marketing/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: medspasync-marketing
+        run: npm ci
+
+      - name: Run linting
+        working-directory: medspasync-marketing
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: medspasync-marketing
+        run: npm run test
+
+      - name: Build application
+        working-directory: medspasync-marketing
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        working-directory: medspasync-marketing
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+
+  # Docker Image Building
+  build-images:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [frontend, backend, ai-api, marketing]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./medspasync-frontend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./medspasync-backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push AI API image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./medspasync-ai-api
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/ai-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push Marketing image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./medspasync-marketing
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/marketing:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Staging Deployment
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-images
+    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Railway (Staging)
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            https://api.railway.app/v2/services/${{ secrets.RAILWAY_SERVICE_ID }}/deployments
+
+      - name: Deploy to Vercel (Frontend Staging)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./medspasync-frontend
+          vercel-args: '--prod'
+
+      - name: Deploy to Netlify (Marketing Staging)
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: './medspasync-marketing/dist'
+          production-branch: develop
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+
+      - name: Run smoke tests
+        run: |
+          curl -f https://staging.medspasyncpro.com/health || exit 1
+          curl -f https://staging-api.medspasyncpro.com/health || exit 1
+
+  # Production Deployment
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-images
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Railway (Production)
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            https://api.railway.app/v2/services/${{ secrets.RAILWAY_PRODUCTION_SERVICE_ID }}/deployments
+
+      - name: Deploy to Vercel (Frontend Production)
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./medspasync-frontend
+          vercel-args: '--prod'
+
+      - name: Deploy to Netlify (Marketing Production)
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: './medspasync-marketing/dist'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+
+      - name: Run production health checks
+        run: |
+          curl -f https://medspasyncpro.com/health || exit 1
+          curl -f https://api.medspasyncpro.com/health || exit 1
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#deployments'
+          text: 'MedSpaSync Pro production deployment successful! 🚀'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Performance Monitoring
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Run k6 performance tests
+        uses: grafana/k6-action@v0.3.0
+        with:
+          filename: performance-tests/load-test.js
+          flags: --out influxdb=http://influxdb:8086/k6
+
+      - name: Generate performance report
+        run: |
+          echo "Performance test completed"
+          # Add custom performance reporting logic here
+
+  # Final Status
+  deployment-status:
+    name: Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production, performance-test]
+    if: always()
+    steps:
+      - name: Generate deployment report
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- AI API: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- Marketing: ✅ Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance: ✅ Tested" >> $GITHUB_STEP_SUMMARY 

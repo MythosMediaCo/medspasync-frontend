@@ -1,0 +1,163 @@
+version: '3.8'
+
+services:
+  # AI Reconciliation Engine - The Heart of the Kingdom
+  ai-engine:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - MAX_WORKERS=4
+      - BATCH_SIZE=100
+      - MODEL_THRESHOLD=0.95
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ai-kingdom
+
+  # Database - The Kingdom's Memory
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: medspa_ai
+      POSTGRES_USER: ai_king
+      POSTGRES_PASSWORD: kingdom_secure_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Redis - The Kingdom's Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Nginx - The Kingdom's Gateway
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - ai-engine
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Monitoring - The Kingdom's Watchtower
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Grafana - The Kingdom's Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=kingdom_secure_2024
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Job Queue - The Kingdom's Workforce
+  celery:
+    build: .
+    command: celery -A reconciliation_engine.celery worker --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Flower - The Kingdom's Task Monitor
+  flower:
+    build: .
+    command: celery -A reconciliation_engine.celery flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - celery
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+  # Backup Service - The Kingdom's Archive
+  backup:
+    build: .
+    command: python backup_service.py
+    environment:
+      - BACKUP_SCHEDULE=0 2 * * *
+      - BACKUP_RETENTION_DAYS=30
+    volumes:
+      - ./data:/app/data
+      - ./backups:/app/backups
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - ai-kingdom
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  ai-kingdom:
+    driver: bridge 

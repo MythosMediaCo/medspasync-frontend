@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lead {
+  id                        String   @id @default(cuid())
+  firstName                 String
+  lastName                  String
+  email                     String   @unique
+  phone                     String
+  practiceName              String
+  practiceType              PracticeType
+  currentReconciliationTime ReconciliationTime
+  rewardsPrograms           String[] // Array of program names
+  monthlyTransactions       TransactionVolume
+  painPoints                String
+  timeline                  Timeline
+  source                    LeadSource
+  status                    LeadStatus @default(NEW)
+  crmId                     String?   // External CRM ID
+  emailSent                 Boolean  @default(false)
+  emailSentAt               DateTime?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("leads")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+enum PracticeType {
+  SINGLE_LOCATION
+  MULTI_LOCATION
+  FRANCHISE_GROUP
+}
+
+enum ReconciliationTime {
+  ZERO_TO_FIVE
+  FIVE_TO_TEN
+  TEN_TO_FIFTEEN
+  FIFTEEN_PLUS
+}
+
+enum TransactionVolume {
+  ZERO_TO_FIVE_HUNDRED
+  FIVE_HUNDRED_TO_ONE_THOUSAND
+  ONE_THOUSAND_TO_TWO_THOUSAND
+  TWO_THOUSAND_PLUS
+}
+
+enum Timeline {
+  IMMEDIATELY
+  WITHIN_30_DAYS
+  WITHIN_90_DAYS
+  EXPLORING
+}
+
+enum LeadSource {
+  GOOGLE
+  SOCIAL_MEDIA
+  REFERRAL
+  INDUSTRY_EVENT
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+} 

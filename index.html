@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="MedSpaSync Pro - Medical Spa Management Platform" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://status.medspasyncpro.com; connect-src 'self' https://api.medspasyncpro.com https://status.medspasyncpro.com; object-src 'none'; base-uri 'self';"
+    />
+    <style>
+      @font-face {
+        font-display: swap;
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 400;
+        src: url('/fonts/inter-v19-latin-regular.woff2') format('woff2');
+      }
+      @font-face {
+        font-display: swap;
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 500;
+        src: url('/fonts/inter-v19-latin-500.woff2') format('woff2');
+      }
+      @font-face {
+        font-display: swap;
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 600;
+        src: url('/fonts/inter-v19-latin-600.woff2') format('woff2');
+      }
+      @font-face {
+        font-display: swap;
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 700;
+        src: url('/fonts/inter-v19-latin-700.woff2') format('woff2');
+      }
+      @font-face {
+        font-display: swap;
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 800;
+        src: url('/fonts/inter-v19-latin-800.woff2') format('woff2');
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      }
+
+      /* Visibility Controls */
+      .hidden-element { display: none !important; }
+      .visible-element { display: block; }
+      .visible-inline { display: inline; }
+      .visible-flex { display: flex; }
+      .invisible-element { visibility: hidden; }
+
+      /* Focus Management */
+      .focus-outline { outline: 2px solid #3b82f6; outline-offset: 2px; }
+      .focus-visible { outline: 2px solid #059669; outline-offset: 2px; }
+
+      /* State Classes */
+      .error-state { border-color: #ef4444 !important; background-color: #fef2f2; color: #dc2626; }
+      .success-state { border-color: #10b981 !important; background-color: #f0fdf4; color: #059669; }
+      .warning-state { border-color: #f59e0b !important; background-color: #fffbeb; color: #d97706; }
+      .loading-state { opacity: 0.7; pointer-events: none; cursor: wait; }
+      .disabled-state { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
+
+      /* Spinner Animations */
+      .spinner-small { width: 16px; height: 16px; border: 2px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; }
+      .spinner-medium { width: 24px; height: 24px; border: 3px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; }
+      .spinner-large { width: 32px; height: 32px; border: 4px solid #e5e7eb; border-top-color: #059669; border-radius: 50%; animation: spin 1s linear infinite; }
+
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+      /* Animation Classes */
+      .fade-in { opacity: 0; animation: fadeIn 0.3s ease forwards; }
+      .fade-out { animation: fadeOut 0.3s ease forwards; }
+      .slide-in-right { transform: translateX(100%); animation: slideInRight 0.3s ease forwards; }
+
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+      @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+      @media (prefers-reduced-motion: reduce) {
+        .spinner-small, .spinner-medium, .spinner-large,
+        .fade-in, .fade-out, .slide-in-right {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    
+    <title>MedSpaSync Pro - Medical Spa Management Platform</title>
+    <script type="module" crossorigin src="/assets/index-3764502f.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/react-39836892.js">
+    <link rel="stylesheet" href="/assets/index-a48875e7.css">
+  </head>
+  <body>
+    <script>
+      if (
+        localStorage.getItem('darkMode') === 'true' ||
+        (!localStorage.getItem('darkMode') &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.classList.add('dark');
+      }
+    </script>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    
+  </body>
+</html>

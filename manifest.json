@@ -1,0 +1,20 @@
+{
+  "_react-39836892.js": {
+    "file": "assets/react-39836892.js"
+  },
+  "index.css": {
+    "file": "assets/index-a48875e7.css",
+    "src": "index.css"
+  },
+  "index.html": {
+    "css": [
+      "assets/index-a48875e7.css"
+    ],
+    "file": "assets/index-3764502f.js",
+    "imports": [
+      "_react-39836892.js"
+    ],
+    "isEntry": true,
+    "src": "index.html"
+  }
+}

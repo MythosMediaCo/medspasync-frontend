@@ -1,0 +1,54 @@
+{
+  "name": "medspasync-backend",
+  "version": "1.0.0",
+  "description": "MedSpaSync Pro Backend - 100K+ TPS Optimized",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "jest",
+    "test:load": "node tests/load-testing/100k-tps-test.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "build": "echo 'No build step required for Node.js'",
+    "deploy": "npm run lint && npm test && npm start"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "cors": "^2.8.5",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^7.1.5",
+    "ioredis": "^5.3.2",
+    "sequelize": "^6.35.2",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "stripe": "^14.10.0",
+    "cloudflare": "^4.0.0",
+    "autocannon": "^7.15.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.57.0",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "medical-spa",
+    "reconciliation",
+    "ai",
+    "healthcare",
+    "high-performance",
+    "100k-tps"
+  ],
+  "author": "MedSpaSync Pro Team",
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,125 @@
+MedSpaXGBoostMatcher
+# MedSpaSync Pro – Phase 2 AI Integration
+Codex/ChatGPT Setup Prompts & File Automation Guide
+
+📁 Directory: medspasync-backend/
+
+This guide automates Phase 2 of the reconciliation engine with XGBoost classification and confidence scoring.
+
+---
+
+## 🔍 Files to Generate
+
+### 1. Auto-Labeled Training Data
+Prompt:
+"""
+Write a Python script that:
+- Loads reward transactions from DEMO1.csv and synthetic POS data
+- Matches all pairs using phone, name, amount, and timestamp similarity
+- Auto-labels match results:
+    * is_match: true if score >= 0.97
+    * is_match: false if score <= 0.70
+    * skip otherwise
+- Saves labeled pairs to data/training_data.json
+"""
+
+Output:
+- data/training_data.json
+
+---
+
+### 2. Match Classifier with XGBoost
+Prompt:
+"""
+Create a Python class `MedSpaXGBoostMatcher` that:
+- Loads labeled match pairs from training_data.json
+- Extracts features: name similarity, phone match, email domain match, amount diff, time diff, service match
+- Trains XGBoost classifier
+- Exposes:
+    * train_model()
+    * predict_match(txn1, txn2)
+    * save_model(path)
+    * load_model(path)
+"""
+
+Output:
+- reconciliation/medspa_xgboost.py
+- reconciliation/xgboost_model.pkl (saved after training)
+
+---
+
+### 3. Training CLI
+Prompt:
+"""
+Create a script `train_model.py` that:
+- Trains MedSpaXGBoostMatcher on data/training_data.json
+- Saves to reconciliation/xgboost_model.pkl
+- Prints accuracy and feature importances
+"""
+
+Output:
+- train_model.py
+
+---
+
+### 4. Prediction CLI
+Prompt:
+"""
+Create `predict_match.py` that:
+- Loads the saved XGBoost model
+- Accepts reward + POS txn JSON
+- Prints confidence score using predict_match()
+"""
+
+Output:
+- predict_match.py
+
+---
+
+### 5. Confidence-Based Decision Engine
+Prompt:
+"""
+Create a class `ConfidenceBasedDecisionEngine` that:
+- Returns 'auto_approved' if score >= 0.95
+- Returns 'needs_review' if 0.75 <= score < 0.95
+- Returns 'rejected' if score < 0.75
+"""
+
+Output:
+- reconciliation/confidence_engine.py
+
+---
+
+### 6. (Optional) Adaptive Retraining
+Prompt:
+"""
+Create adaptive_learning.py that:
+- Loads new labeled feedback from corrections.jsonl
+- Appends to training_data.json
+- Retrains and overwrites xgboost_model.pkl
+"""
+
+Output:
+- reconciliation/adaptive_learning.py
+
+---
+
+📁 Final Structure:
+
+medspasync-backend/
+├── reconciliation/
+│   ├── enhanced_fuzzy_matcher.py
+│   ├── medspa_xgboost.py
+│   ├── confidence_engine.py
+│   ├── adaptive_learning.py
+│   └── xgboost_model.pkl
+├── data/
+│   ├── training_data.json
+│   ├── corrections.jsonl
+├── train_model.py
+├── predict_match.py
+
+🧠 Outcome:
+- 94–95% match accuracy
+- Real-time decision logic
+- Model improvement via corrections

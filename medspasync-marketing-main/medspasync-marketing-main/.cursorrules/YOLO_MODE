@@ -1,0 +1,346 @@
+# YOLO MODE CONFIGURATION
+# Maximum autonomous operation with safety constraints
+
+## AUTONOMOUS EXECUTION PERMISSIONS
+
+### Development Commands (Auto-Execute)
+```bash
+# Testing commands
+npm test                    # Run test suite
+npm run test:coverage      # Generate coverage report
+npm run test:ui           # Open test UI
+npm run test:run          # Single test run
+vitest                    # Direct vitest execution
+
+# Build operations
+npm run build             # Production build
+npm run build:analyze     # Bundle analysis
+npm run type-check        # TypeScript validation
+npm run preview           # Preview build
+
+# Code quality
+npm run lint              # ESLint checking
+npm run lint:fix          # Auto-fix linting issues
+npm run format            # Prettier formatting
+npm run format:check      # Format validation
+
+# Performance analysis
+npm run lighthouse        # Performance testing
+npm run lighthouse:desktop # Desktop performance
+npm run lighthouse:mobile  # Mobile performance
+
+# Package management
+npm install               # Install dependencies
+npm update                # Update dependencies
+npm audit                 # Security audit
+npm audit fix             # Auto-fix security issues
+
+# Development server
+npm run dev               # Start development server
+npm run preview:dist      # Preview production build
+```
+
+### File Operations (Auto-Execute)
+- Create new files and directories within project
+- Modify existing files with proper validation
+- Delete files with backup creation
+- Rename files and update imports
+- Generate component templates and tests
+
+### Git Operations (Auto-Execute)
+```bash
+# Safe git operations
+git add .                 # Stage changes
+git commit -m "message"   # Commit changes
+git push origin feature   # Push to feature branch
+git checkout -b feature   # Create feature branch
+git merge feature         # Merge feature branch
+git rebase main           # Rebase on main
+```
+
+## SAFETY CONSTRAINTS & LIMITATIONS
+
+### Production Protection
+- **NEVER** modify production configuration files
+- **NEVER** deploy directly to production
+- **NEVER** modify environment variables
+- **NEVER** change deployment scripts
+- **NEVER** modify CI/CD pipeline configuration
+
+### Security Constraints
+- **NEVER** expose API keys or secrets
+- **NEVER** modify security configurations
+- **NEVER** disable security features
+- **NEVER** bypass authentication
+- **NEVER** modify CORS or CSP settings
+
+### External API Constraints
+- **REQUIRE** manual approval for external API calls
+- **REQUIRE** manual approval for third-party integrations
+- **REQUIRE** manual approval for payment processing
+- **REQUIRE** manual approval for data exports
+- **REQUIRE** manual approval for user data operations
+
+### Error Handling
+- **STOP** execution if error rate exceeds 10%
+- **STOP** execution if tests fail consistently
+- **STOP** execution if build fails
+- **STOP** execution if security scan fails
+- **STOP** execution if performance degrades significantly
+
+## AUTONOMOUS WORKFLOW PATTERNS
+
+### Feature Development Workflow
+```bash
+# 1. Create feature branch
+git checkout -b feature/new-feature
+
+# 2. Generate components and tests
+npm run generate:component --name="NewComponent"
+npm run generate:test --name="NewComponent"
+
+# 3. Implement feature
+# (Auto-generated code with tests)
+
+# 4. Run tests and validation
+npm run test:coverage
+npm run lint
+npm run type-check
+
+# 5. Commit and push
+git add .
+git commit -m "feat: implement new feature"
+git push origin feature/new-feature
+```
+
+### Bug Fix Workflow
+```bash
+# 1. Create fix branch
+git checkout -b fix/bug-description
+
+# 2. Apply debugging protocol
+npm run test:coverage    # Identify failing tests
+npm run lint            # Check for code issues
+npm run type-check      # Validate TypeScript
+
+# 3. Implement fix with tests
+# (Auto-generated fix with validation)
+
+# 4. Validate fix
+npm run test:run        # Ensure all tests pass
+npm run build           # Ensure build succeeds
+
+# 5. Commit and push
+git add .
+git commit -m "fix: resolve bug description"
+git push origin fix/bug-description
+```
+
+### Performance Optimization Workflow
+```bash
+# 1. Create optimization branch
+git checkout -b perf/optimization-description
+
+# 2. Baseline performance
+npm run lighthouse:desktop
+npm run lighthouse:mobile
+npm run build:analyze
+
+# 3. Implement optimizations
+# (Auto-generated optimizations)
+
+# 4. Validate improvements
+npm run lighthouse:desktop  # Compare metrics
+npm run lighthouse:mobile   # Compare metrics
+npm run test:run           # Ensure no regressions
+
+# 5. Commit and push
+git add .
+git commit -m "perf: optimize performance"
+git push origin perf/optimization-description
+```
+
+## AUTOMATED QUALITY GATES
+
+### Pre-Commit Validation
+```bash
+# Automatic validation before commits
+npm run lint              # Code quality
+npm run type-check        # Type safety
+npm run test:run          # Test coverage
+npm run format:check      # Code formatting
+```
+
+### Pre-Push Validation
+```bash
+# Additional validation before push
+npm run build             # Build verification
+npm run test:coverage     # Coverage verification
+npm run security:audit    # Security check
+```
+
+### Continuous Integration
+```bash
+# CI/CD pipeline validation
+npm run test:run          # All tests pass
+npm run build             # Build succeeds
+npm run lighthouse        # Performance meets budget
+npm run security:audit    # No security vulnerabilities
+```
+
+## ERROR RECOVERY MECHANISMS
+
+### Automatic Rollback
+```bash
+# Automatic rollback on failures
+git reset --hard HEAD~1   # Revert last commit
+git checkout main         # Return to main branch
+git branch -D feature     # Delete failed branch
+```
+
+### Test Failure Recovery
+```bash
+# Recovery from test failures
+npm run test:run          # Re-run tests
+npm run lint:fix          # Auto-fix linting
+npm run type-check        # Check TypeScript
+```
+
+### Build Failure Recovery
+```bash
+# Recovery from build failures
+npm run clean             # Clean build artifacts
+npm install               # Reinstall dependencies
+npm run build             # Rebuild project
+```
+
+## MONITORING & ALERTING
+
+### Performance Monitoring
+```javascript
+// Performance budget monitoring
+const performanceBudgets = {
+  lcp: 2500,    // 2.5 seconds
+  fid: 100,     // 100 milliseconds
+  cls: 0.1,     // 0.1
+  fcp: 1800,    // 1.8 seconds
+  bundleSize: 500 * 1024  // 500KB
+}
+
+// Alert on budget violations
+if (metrics.lcp > performanceBudgets.lcp) {
+  console.warn('LCP exceeds budget:', metrics.lcp)
+  // Trigger alert
+}
+```
+
+### Error Rate Monitoring
+```javascript
+// Error rate monitoring
+let errorCount = 0
+let totalOperations = 0
+
+const trackOperation = (success) => {
+  totalOperations++
+  if (!success) errorCount++
+  
+  const errorRate = errorCount / totalOperations
+  
+  if (errorRate > 0.1) { // 10% error rate
+    console.error('Error rate too high:', errorRate)
+    // Stop execution
+    process.exit(1)
+  }
+}
+```
+
+### Test Coverage Monitoring
+```javascript
+// Test coverage monitoring
+const coverageThreshold = 0.9 // 90%
+
+if (coverage < coverageThreshold) {
+  console.error('Test coverage below threshold:', coverage)
+  // Prevent commit/push
+  process.exit(1)
+}
+```
+
+## AUTONOMOUS DECISION MAKING
+
+### Feature Implementation Decisions
+- **AUTO-APPROVE**: Component creation and testing
+- **AUTO-APPROVE**: Utility function implementation
+- **AUTO-APPROVE**: Hook development
+- **AUTO-APPROVE**: Page component creation
+- **AUTO-APPROVE**: Test generation and execution
+
+### Code Quality Decisions
+- **AUTO-APPROVE**: Linting fixes
+- **AUTO-APPROVE**: TypeScript improvements
+- **AUTO-APPROVE**: Performance optimizations
+- **AUTO-APPROVE**: Accessibility improvements
+- **AUTO-APPROVE**: Security vulnerability fixes
+
+### Architecture Decisions
+- **REQUIRE APPROVAL**: Major architectural changes
+- **REQUIRE APPROVAL**: Database schema changes
+- **REQUIRE APPROVAL**: API contract changes
+- **REQUIRE APPROVAL**: Third-party integrations
+- **REQUIRE APPROVAL**: Deployment configuration
+
+## BACKGROUND AGENT CONFIGURATION
+
+### Agent Permissions
+```json
+{
+  "permissions": {
+    "fileSystem": "project-only",
+    "terminal": "restricted",
+    "internet": "limited",
+    "git": "feature-branches-only"
+  },
+  "constraints": {
+    "maxExecutionTime": 300000, // 5 minutes
+    "maxFileOperations": 100,
+    "maxGitOperations": 10,
+    "errorThreshold": 0.1
+  }
+}
+```
+
+### Agent Workflows
+- **Development Agent**: Feature implementation and testing
+- **Quality Agent**: Code review and validation
+- **Performance Agent**: Optimization and monitoring
+- **Security Agent**: Vulnerability scanning and fixes
+- **Documentation Agent**: Documentation generation
+
+## YOLO MODE ACTIVATION
+
+### Enable YOLO Mode
+```bash
+# Activate YOLO mode for current session
+export CURSOR_YOLO_MODE=true
+export CURSOR_AUTO_EXECUTE=true
+export CURSOR_BACKGROUND_AGENTS=true
+```
+
+### YOLO Mode Commands
+```bash
+# YOLO mode specific commands
+npm run yolo:feature      # Autonomous feature development
+npm run yolo:fix          # Autonomous bug fixing
+npm run yolo:optimize     # Autonomous optimization
+npm run yolo:test         # Autonomous testing
+npm run yolo:deploy       # Autonomous deployment (staging only)
+```
+
+### YOLO Mode Safety
+- **ALWAYS** create backup branches before major changes
+- **ALWAYS** run tests before committing
+- **ALWAYS** validate performance impact
+- **ALWAYS** check security implications
+- **ALWAYS** maintain rollback capabilities
+
+This YOLO mode configuration enables maximum autonomous development while maintaining strict safety constraints and quality standards. 

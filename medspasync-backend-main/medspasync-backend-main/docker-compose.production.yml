@@ -1,0 +1,244 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: medspasync-backend-production
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - DATABASE_URL=${DATABASE_URL}
+      - MONGO_URI=${MONGO_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - ML_SERVICE_URL=${ML_SERVICE_URL}
+      - AI_API_KEY=${AI_API_KEY}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@medspasyncpro.com}
+      - ENV_ENCRYPTION_KEY=${ENV_ENCRYPTION_KEY}
+      - UPLOAD_MAX_MB=50
+      - DEFAULT_CONFIDENCE_THRESHOLD=0.85
+      - PROCESSING_BATCH_SIZE=500
+      - MAX_TRANSACTIONS_PER_JOB=100000
+      - AI_TIMEOUT=900000
+      - MAX_CONCURRENT_AI_JOBS=10
+      - JOB_RETENTION_DAYS=90
+      - MAX_JOBS_PER_USER=1000
+      - ENABLE_TRIAL=${ENABLE_TRIAL:-true}
+      - TRIAL_DAYS=${TRIAL_DAYS:-14}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+    networks:
+      - medspasync-production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # Production PostgreSQL Database
+  postgres-production:
+    image: postgres:15-alpine
+    container_name: medspasync-postgres-production
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=medspasync_production
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_production_data:/var/lib/postgresql/data
+      - ./backups/postgres:/backups
+    ports:
+      - "5432:5432"
+    networks:
+      - medspasync-production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Production MongoDB (for legacy data)
+  mongo-production:
+    image: mongo:6
+    container_name: medspasync-mongo-production
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=medspasync_production
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo_production_data:/data/db
+      - ./backups/mongo:/backups
+    ports:
+      - "27017:27017"
+    networks:
+      - medspasync-production
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Production Redis (for caching and sessions)
+  redis-production:
+    image: redis:7-alpine
+    container_name: medspasync-redis-production
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_production_data:/data
+    networks:
+      - medspasync-production
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  # Production Nginx (reverse proxy with SSL)
+  nginx-production:
+    image: nginx:alpine
+    container_name: medspasync-nginx-production
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend
+    networks:
+      - medspasync-production
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Production Monitoring (Prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: medspasync-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - medspasync-production
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Production Monitoring (Grafana)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: medspasync-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - medspasync-production
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Production Backup Service
+  backup-service:
+    image: alpine:latest
+    container_name: medspasync-backup-service
+    restart: unless-stopped
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup.sh:/backup.sh:ro
+    environment:
+      - POSTGRES_HOST=postgres-production
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - MONGO_HOST=mongo-production
+      - MONGO_USER=${MONGO_ROOT_USER}
+      - MONGO_PASSWORD=${MONGO_ROOT_PASSWORD}
+    command: ["sh", "/backup.sh"]
+    networks:
+      - medspasync-production
+    depends_on:
+      - postgres-production
+      - mongo-production
+
+volumes:
+  postgres_production_data:
+    driver: local
+  mongo_production_data:
+    driver: local
+  redis_production_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  medspasync-production:
+    driver: bridge 

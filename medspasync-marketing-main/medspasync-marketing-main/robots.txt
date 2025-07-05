@@ -1,0 +1,204 @@
+# robots.txt for MedSpaSync Pro - AI Intelligence Layer for Medical Spas
+# Optimized for medical spa reconciliation platform SEO
+
+# === Main Search Engine Crawlers ===
+
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Yahoo
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# === Specialized Bots ===
+
+# Google Image Bot
+User-agent: Googlebot-Image
+Allow: /
+Disallow: /src/
+Disallow: /assets/temp/
+
+# Google Mobile Bot
+User-agent: Googlebot-Mobile
+Allow: /
+
+# Facebook Bot (for social sharing)
+User-agent: facebookexternalhit
+Allow: /
+Disallow: /src/
+Disallow: /admin/
+
+# Twitter Bot (for card previews)
+User-agent: Twitterbot
+Allow: /
+Disallow: /src/
+Disallow: /admin/
+
+# LinkedIn Bot
+User-agent: LinkedInBot
+Allow: /
+Disallow: /src/
+Disallow: /admin/
+
+# === Development and Internal Paths ===
+
+# Block source code and development files
+User-agent: *
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /.vscode/
+Disallow: /.netlify/
+Disallow: /dist/
+Disallow: /build/
+
+# Block temporary and processing files
+Disallow: /temp/
+Disallow: /tmp/
+Disallow: /cache/
+Disallow: /logs/
+
+# Block admin and internal tools
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /internal/
+Disallow: /test/
+Disallow: /dev/
+
+# Block API endpoints (if any)
+Disallow: /api/
+Disallow: /_api/
+
+# Block configuration files
+Disallow: /*.json$
+Disallow: /*.config.js$
+Disallow: /*.config.ts$
+Disallow: /package.json
+Disallow: /package-lock.json
+
+# === Medical Spa Specific Blocks ===
+
+# Block sample/demo data (never real patient info)
+Disallow: /sample-data/
+Disallow: /demo-data/
+Disallow: /test-reconciliation/
+
+# Block any CSV upload areas (privacy protection)
+Disallow: /uploads/
+Disallow: /files/
+Disallow: /reconciliation-files/
+
+# Block staging or preview areas
+Disallow: /staging/
+Disallow: /preview/
+Disallow: /beta/
+
+# === Unwanted Bot Management ===
+
+# Block aggressive crawlers
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Block AI training crawlers (optional - uncomment if desired)
+# User-agent: ChatGPT-User
+# Disallow: /
+
+# User-agent: OpenAI-SearchBot
+# Disallow: /
+
+# User-agent: Claude-Web
+# Disallow: /
+
+# Block other unwanted bots
+User-agent: SplitSignalBot
+Disallow: /
+
+User-agent: WebReaper
+Disallow: /
+
+User-agent: WebCopier
+Disallow: /
+
+User-agent: Offline Explorer
+Disallow: /
+
+User-agent: HTTrack
+Disallow: /
+
+User-agent: Microsoft URL Control
+Disallow: /
+
+User-agent: Xenu
+Disallow: /
+
+# === Sitemap and Important Pages ===
+
+# Main sitemap
+Sitemap: https://medspasyncpro.com/sitemap.xml
+
+# Additional sitemaps (if you create them)
+# Sitemap: https://medspasyncpro.com/sitemap-articles.xml
+# Sitemap: https://medspasyncpro.com/sitemap-images.xml
+
+# === Important Medical Spa Pages (Ensure these are crawlable) ===
+# These directives ensure critical pages are definitely crawlable
+
+User-agent: *
+Allow: /
+Allow: /features
+Allow: /pricing
+Allow: /about
+Allow: /contact
+Allow: /support
+Allow: /insights
+Allow: /privacy
+Allow: /terms
+
+# Ensure article pages are crawlable
+Allow: /insights/hipaa-compliance
+Allow: /insights/software-integration-failures
+Allow: /insights/hidden-costs-of-integration
+
+# === Performance Optimization ===
+
+# Crawl delay for respectful crawling (seconds between requests)
+User-agent: *
+Crawl-delay: 1
+
+# === Additional Notes ===
+# 
+# This robots.txt is optimized for:
+# 1. Medical spa industry SEO
+# 2. HIPAA-conscious privacy protection
+# 3. Marketing website performance
+# 4. Professional software platform standards
+#
+# Key pages for medical spa reconciliation:
+# - Homepage: Problem-focused (8+ hours weekly waste)
+# - Features: AI accuracy (95%+ matching)
+# - Pricing: ROI-focused ($299/month with 12x return)
+# - Insights: Industry expertise and challenges
+#
+# Contact: support@medspasyncpro.com for SEO questions

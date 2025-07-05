@@ -1,0 +1,280 @@
+# AUTONOMOUS TDD WORKFLOW
+# Test-Driven Development with maximum automation
+
+## TDD CYCLE: RED → GREEN → REFACTOR
+
+### RED PHASE - Generate Failing Tests
+1. **Unit Test Specifications**
+   - Create comprehensive unit test specifications
+   - Define test cases for all edge cases and error conditions
+   - Include performance and security test cases
+   - Ensure all tests fail initially (Red state)
+
+2. **Integration Test Scenarios**
+   - Design integration tests for component interactions
+   - Create API integration test scenarios
+   - Test data flow and state management
+   - Validate error handling and recovery
+
+3. **End-to-End User Journey Tests**
+   - Design complete user workflow tests
+   - Test critical business processes
+   - Validate accessibility and usability
+   - Include cross-browser compatibility tests
+
+4. **Performance & Security Tests**
+   - Performance benchmarking tests
+   - Security vulnerability scanning tests
+   - Load testing for critical paths
+   - Memory leak detection tests
+
+### GREEN PHASE - Minimal Implementation
+1. **Minimal Code Implementation**
+   - Implement minimal code to make tests pass
+   - Focus on functionality over optimization
+   - Use placeholder implementations where appropriate
+   - Validate each test passes individually
+
+2. **Incremental Development**
+   - Add features one test at a time
+   - Maintain test coverage throughout development
+   - Ensure backward compatibility
+   - Handle all error conditions
+
+3. **Quality Validation**
+   - Run complete test suite after each change
+   - Validate performance meets requirements
+   - Check security compliance
+   - Ensure accessibility standards
+
+### REFACTOR PHASE - Optimize Implementation
+1. **Code Structure Improvement**
+   - Improve code structure while maintaining tests
+   - Apply design patterns and best practices
+   - Optimize performance based on benchmarks
+   - Ensure comprehensive error handling
+
+2. **Architecture Optimization**
+   - Refactor for better maintainability
+   - Optimize component interactions
+   - Improve state management patterns
+   - Enhance user experience
+
+3. **Quality Enhancement**
+   - Apply SOLID principles
+   - Implement clean architecture patterns
+   - Optimize bundle size and loading
+   - Enhance security measures
+
+## TESTING STRATEGY
+
+### Test Coverage Requirements
+- **Unit Tests**: 90%+ coverage for business logic
+- **Integration Tests**: All component interactions
+- **E2E Tests**: Critical user journeys
+- **Performance Tests**: Core Web Vitals compliance
+- **Security Tests**: Vulnerability scanning
+
+### Testing Tools Configuration
+```javascript
+// Vitest configuration for comprehensive testing
+export default defineConfig({
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      thresholds: {
+        global: {
+          branches: 90,
+          functions: 90,
+          lines: 90,
+          statements: 90
+        }
+      }
+    },
+    include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
+    exclude: ['node_modules', 'dist', 'coverage']
+  }
+})
+```
+
+### Component Testing Patterns
+```typescript
+// Standard component test structure
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { ComponentName } from './ComponentName'
+
+describe('ComponentName', () => {
+  it('should render correctly', () => {
+    render(<ComponentName />)
+    expect(screen.getByRole('button')).toBeInTheDocument()
+  })
+
+  it('should handle user interactions', () => {
+    const mockHandler = vi.fn()
+    render(<ComponentName onClick={mockHandler} />)
+    
+    fireEvent.click(screen.getByRole('button'))
+    expect(mockHandler).toHaveBeenCalledTimes(1)
+  })
+
+  it('should handle error states', () => {
+    render(<ComponentName error="Test error" />)
+    expect(screen.getByText('Test error')).toBeInTheDocument()
+  })
+})
+```
+
+## AUTOMATED TEST EXECUTION
+
+### Continuous Testing
+- Run tests automatically on every change
+- Execute performance tests on build
+- Run security scans in CI/CD pipeline
+- Validate accessibility compliance
+- Monitor test coverage trends
+
+### Test Execution Commands
+```bash
+# Development testing
+npm run test              # Watch mode for development
+npm run test:ui          # UI interface for test results
+npm run test:run         # Single run for CI/CD
+npm run test:coverage    # Coverage report
+
+# Performance testing
+npm run lighthouse       # Performance analysis
+npm run build:analyze    # Bundle analysis
+
+# Quality checks
+npm run lint             # Code quality
+npm run type-check       # TypeScript validation
+npm run format:check     # Code formatting
+```
+
+## TEST DATA MANAGEMENT
+
+### Test Data Strategy
+- Use factory functions for test data creation
+- Implement test data builders for complex objects
+- Maintain test data consistency across tests
+- Use fixtures for static test data
+- Implement test data cleanup
+
+### Mocking Strategy
+- Mock external dependencies consistently
+- Use MSW for API mocking
+- Implement proper cleanup for mocks
+- Use realistic mock data
+- Test error scenarios with mocks
+
+## PERFORMANCE TESTING
+
+### Core Web Vitals Testing
+- Largest Contentful Paint (LCP) < 2.5s
+- First Input Delay (FID) < 100ms
+- Cumulative Layout Shift (CLS) < 0.1
+- First Contentful Paint (FCP) < 1.8s
+
+### Performance Test Implementation
+```typescript
+// Performance test example
+import { test, expect } from '@playwright/test'
+
+test('should load homepage within performance budget', async ({ page }) => {
+  const startTime = Date.now()
+  await page.goto('/')
+  
+  // Wait for critical content
+  await page.waitForSelector('[data-testid="hero-section"]')
+  
+  const loadTime = Date.now() - startTime
+  expect(loadTime).toBeLessThan(2000) // 2 second budget
+})
+```
+
+## SECURITY TESTING
+
+### Security Test Categories
+- XSS vulnerability testing
+- CSRF protection validation
+- Input validation testing
+- Authentication and authorization
+- Data encryption validation
+
+### Security Test Implementation
+```typescript
+// Security test example
+import { test, expect } from '@playwright/test'
+
+test('should prevent XSS attacks', async ({ page }) => {
+  const maliciousInput = '<script>alert("xss")</script>'
+  
+  await page.goto('/contact')
+  await page.fill('[data-testid="message-input"]', maliciousInput)
+  await page.click('[data-testid="submit-button"]')
+  
+  // Verify script is not executed
+  const content = await page.content()
+  expect(content).not.toContain('<script>alert("xss")</script>')
+})
+```
+
+## ACCESSIBILITY TESTING
+
+### Accessibility Test Requirements
+- WCAG 2.1 AA compliance
+- Keyboard navigation testing
+- Screen reader compatibility
+- Color contrast validation
+- Focus management testing
+
+### Accessibility Test Implementation
+```typescript
+// Accessibility test example
+import { test, expect } from '@playwright/test'
+
+test('should be keyboard accessible', async ({ page }) => {
+  await page.goto('/')
+  
+  // Test tab navigation
+  await page.keyboard.press('Tab')
+  const firstFocusable = await page.evaluate(() => document.activeElement?.tagName)
+  expect(firstFocusable).toBe('A') // Should focus on first link
+})
+```
+
+## TEST MAINTENANCE
+
+### Test Maintenance Strategy
+- Regular test review and cleanup
+- Update tests when requirements change
+- Remove obsolete test cases
+- Optimize test execution time
+- Maintain test documentation
+
+### Test Documentation
+- Document test scenarios and expected outcomes
+- Maintain test data documentation
+- Update test setup instructions
+- Document test environment requirements
+- Create troubleshooting guides
+
+## INTEGRATION WITH CI/CD
+
+### CI/CD Pipeline Integration
+- Automated test execution on commits
+- Test result reporting and notifications
+- Performance regression detection
+- Security vulnerability alerts
+- Test coverage reporting
+
+### Quality Gates
+- All tests must pass before deployment
+- Performance thresholds must be met
+- Security scans must be clean
+- Accessibility compliance required
+- Code coverage minimums enforced 

@@ -1,0 +1,146 @@
+[
+  {
+    "reward": {
+      "name": "John Doe",
+      "phone": "123-456-7890",
+      "amount": 120.5,
+      "timestamp": "2024-06-01T12:00:00"
+    },
+    "pos": {
+      "name": "Jeff Wright",
+      "phone": "831-945-1403",
+      "amount": 122.8,
+      "timestamp": "2025-03-24T22:14:37.425661"
+    },
+    "is_match": false,
+    "score": 0.4492649579975999
+  },
+  {
+    "reward": {
+      "name": "John Doe",
+      "phone": "123-456-7890",
+      "amount": 120.5,
+      "timestamp": "2024-06-01T12:00:00"
+    },
+    "pos": {
+      "name": "Stephanie Robbins",
+      "phone": "838-899-0444",
+      "amount": 60.61,
+      "timestamp": "2025-04-19T11:02:04.058418"
+    },
+    "is_match": false,
+    "score": 0.30991355463347164
+  },
+  {
+    "reward": {
+      "name": "John Doe",
+      "phone": "123-456-7890",
+      "amount": 120.5,
+      "timestamp": "2024-06-01T12:00:00"
+    },
+    "pos": {
+      "name": "Anthony Schneider",
+      "phone": "261-424-1143",
+      "amount": 132.53,
+      "timestamp": "2025-02-02T22:55:44.928189"
+    },
+    "is_match": false,
+    "score": 0.3906403581579013
+  },
+  {
+    "reward": {
+      "name": "Jane Smith",
+      "phone": "555-111-2222",
+      "amount": 75.0,
+      "timestamp": "2024-06-02T10:30:00"
+    },
+    "pos": {
+      "name": "Jeff Wright",
+      "phone": "831-945-1403",
+      "amount": 122.8,
+      "timestamp": "2025-03-24T22:14:37.425661"
+    },
+    "is_match": false,
+    "score": 0.3342349154645572
+  },
+  {
+    "reward": {
+      "name": "Jane Smith",
+      "phone": "555-111-2222",
+      "amount": 75.0,
+      "timestamp": "2024-06-02T10:30:00"
+    },
+    "pos": {
+      "name": "Stephanie Robbins",
+      "phone": "838-899-0444",
+      "amount": 60.61,
+      "timestamp": "2025-04-19T11:02:04.058418"
+    },
+    "is_match": false,
+    "score": 0.3362925925925926
+  },
+  {
+    "reward": {
+      "name": "Jane Smith",
+      "phone": "555-111-2222",
+      "amount": 75.0,
+      "timestamp": "2024-06-02T10:30:00"
+    },
+    "pos": {
+      "name": "Anthony Schneider",
+      "phone": "261-424-1143",
+      "amount": 132.53,
+      "timestamp": "2025-02-02T22:55:44.928189"
+    },
+    "is_match": false,
+    "score": 0.2780514754171662
+  },
+  {
+    "reward": {
+      "name": "Bob Johnson",
+      "phone": "987-654-3210",
+      "amount": 60.25,
+      "timestamp": "2024-06-03T14:45:00"
+    },
+    "pos": {
+      "name": "Jeff Wright",
+      "phone": "831-945-1403",
+      "amount": 122.8,
+      "timestamp": "2025-03-24T22:14:37.425661"
+    },
+    "is_match": false,
+    "score": 0.2931133402428191
+  },
+  {
+    "reward": {
+      "name": "Bob Johnson",
+      "phone": "987-654-3210",
+      "amount": 60.25,
+      "timestamp": "2024-06-03T14:45:00"
+    },
+    "pos": {
+      "name": "Stephanie Robbins",
+      "phone": "838-899-0444",
+      "amount": 60.61,
+      "timestamp": "2025-04-19T11:02:04.058418"
+    },
+    "is_match": false,
+    "score": 0.4211341441377739
+  },
+  {
+    "reward": {
+      "name": "Bob Johnson",
+      "phone": "987-654-3210",
+      "amount": 60.25,
+      "timestamp": "2024-06-03T14:45:00"
+    },
+    "pos": {
+      "name": "Anthony Schneider",
+      "phone": "261-424-1143",
+      "amount": 132.53,
+      "timestamp": "2025-02-02T22:55:44.928189"
+    },
+    "is_match": false,
+    "score": 0.26841541717418876
+  }
+]

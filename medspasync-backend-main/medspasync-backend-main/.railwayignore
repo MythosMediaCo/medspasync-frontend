@@ -1,0 +1,30 @@
+# Ignore frontend files that might confuse Railway
+frontend/
+src/frontend/
+public/
+dist/
+build/
+*.html
+*.css
+*.jsx
+*.tsx
+
+# Ignore development files
+.env.local
+.env.development
+.env.test
+*.log
+node_modules/
+.git/
+.gitignore
+
+# Ignore test files
+__tests__/
+tests/
+*.test.js
+*.spec.js
+
+# Ignore documentation
+README.md
+*.md
+docs/ 

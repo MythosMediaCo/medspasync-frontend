@@ -1,0 +1,502 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: medspa-analytics-pro
+  labels:
+    grafana_dashboard: "1"
+data:
+  medspa-analytics-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "MedSpa Analytics Pro - Overview",
+        "tags": ["medspa", "analytics", "overview"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Real-time Revenue",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(medspa_revenue_total)",
+                "legendFormat": "Total Revenue"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": null},
+                    {"color": "green", "value": 10000}
+                  ]
+                },
+                "unit": "currencyUSD"
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Prediction Accuracy",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg(medspa_prediction_accuracy)",
+                "legendFormat": "Accuracy %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": null},
+                    {"color": "yellow", "value": 90},
+                    {"color": "green", "value": 94.7}
+                  ]
+                },
+                "unit": "percent",
+                "decimals": 1
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Active Users",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(medspa_active_users)",
+                "legendFormat": "Active Users"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "short"
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+          },
+          {
+            "id": 4,
+            "title": "API Response Time",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "95th Percentile"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 0.5},
+                    {"color": "red", "value": 1.0}
+                  ]
+                },
+                "unit": "s"
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+          },
+          {
+            "id": 5,
+            "title": "Revenue Predictions vs Actual",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "medspa_revenue_predicted",
+                "legendFormat": "Predicted"
+              },
+              {
+                "expr": "medspa_revenue_actual",
+                "legendFormat": "Actual"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "currencyUSD"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 6,
+            "title": "System Health",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=\"medspa-analytics\"}",
+                "legendFormat": "{{instance}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": null},
+                    {"color": "green", "value": 1}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "10s"
+      }
+    }
+  
+  medspa-performance.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "MedSpa Analytics Pro - Performance",
+        "tags": ["medspa", "analytics", "performance"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "CPU Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{container=~\"realtime-pipeline|predictive-analytics|analytics-api\"}[5m]) * 100",
+                "legendFormat": "{{container}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "percent"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Memory Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "container_memory_usage_bytes{container=~\"realtime-pipeline|predictive-analytics|analytics-api\"} / 1024 / 1024",
+                "legendFormat": "{{container}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "MB"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Request Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total[5m])) by (endpoint)",
+                "legendFormat": "{{endpoint}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "reqps"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Error Rate",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) by (endpoint)",
+                "legendFormat": "{{endpoint}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "reqps"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          },
+          {
+            "id": 5,
+            "title": "Database Connections",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "pg_stat_database_numbackends",
+                "legendFormat": "Active Connections"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+          },
+          {
+            "id": 6,
+            "title": "Redis Memory Usage",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "redis_memory_used_bytes / 1024 / 1024",
+                "legendFormat": "Memory Used (MB)"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "MB"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "10s"
+      }
+    }
+  
+  medspa-business.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "MedSpa Analytics Pro - Business Metrics",
+        "tags": ["medspa", "analytics", "business"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Revenue by Service",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum(medspa_revenue_by_service) by (service_type)",
+                "legendFormat": "{{service_type}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "currencyUSD"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Customer Retention Rate",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "medspa_customer_retention_rate * 100",
+                "legendFormat": "Retention Rate"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": null},
+                    {"color": "yellow", "value": 80},
+                    {"color": "green", "value": 90}
+                  ]
+                },
+                "unit": "percent"
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Average Transaction Value",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg(medspa_transaction_value)",
+                "legendFormat": "Avg Transaction"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "currencyUSD"
+              }
+            },
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0}
+          },
+          {
+            "id": 4,
+            "title": "Appointment Utilization",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "medspa_appointments_booked / medspa_appointments_available * 100",
+                "legendFormat": "Utilization %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": null},
+                    {"color": "yellow", "value": 70},
+                    {"color": "green", "value": 85}
+                  ]
+                },
+                "unit": "percent"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 5,
+            "title": "Staff Productivity",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "medspa_staff_productivity",
+                "legendFormat": "{{staff_member}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "short"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          },
+          {
+            "id": 6,
+            "title": "Predictive Insights Generated",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(medspa_insights_generated_total)",
+                "legendFormat": "Total Insights"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+          },
+          {
+            "id": 7,
+            "title": "AI Model Performance",
+            "type": "timeseries",
+            "targets": [
+              {
+                "expr": "medspa_ai_model_accuracy",
+                "legendFormat": "{{model_type}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "unit": "percent"
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+          }
+        ],
+        "time": {
+          "from": "now-24h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: medspa-analytics-pro
+  labels:
+    grafana_datasource: "1"
+data:
+  prometheus.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-kube-prometheus-prometheus:9090
+        isDefault: true
+        editable: true 

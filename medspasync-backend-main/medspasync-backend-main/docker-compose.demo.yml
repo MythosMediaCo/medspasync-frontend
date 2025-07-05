@@ -1,0 +1,88 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medspasync-backend-demo
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=demo
+      - PORT=5000
+      - JWT_SECRET=demo_jwt_secret
+      - JWT_REFRESH_SECRET=demo_refresh_secret
+      - ML_SERVICE_URL=https://demo-ai.medspasyncpro.com
+      - AI_API_KEY=demo_key
+      - STRIPE_SECRET_KEY=sk_test_...
+      - STRIPE_WEBHOOK_SECRET=whsec_...
+      - EMAIL_USER=demo@medspasyncpro.com
+      - EMAIL_PASSWORD=demo_password
+      - EMAIL_FROM=demo@medspasyncpro.com
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_PORT=587
+      - UPLOAD_MAX_MB=5
+      - DEFAULT_CONFIDENCE_THRESHOLD=0.80
+      - PROCESSING_BATCH_SIZE=50
+      - MAX_TRANSACTIONS_PER_JOB=1000
+      - AI_TIMEOUT=300000
+      - MAX_CONCURRENT_AI_JOBS=2
+      - ENABLE_TRIAL=true
+      - TRIAL_DAYS=3
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - medspasync-demo
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Demo Nginx (simple reverse proxy)
+  nginx-demo:
+    image: nginx:alpine
+    container_name: medspasync-nginx-demo
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/demo.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - medspasync-demo
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Demo Redis (for session management)
+  redis-demo:
+    image: redis:7-alpine
+    container_name: medspasync-redis-demo
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_demo_data:/data
+    networks:
+      - medspasync-demo
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_demo_data:
+    driver: local
+
+networks:
+  medspasync-demo:
+    driver: bridge 

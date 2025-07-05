@@ -1,0 +1,12 @@
+{
+  "to": "john.smith@samplemedspa.com",
+  "subject": "MedSpa Analytics Pro Demo - acme-spa",
+  "body": "\nDear Dr. John Smith,\n\nThank you for scheduling your MedSpa Analytics Pro demo!\n\n**Demo Details:**\n- Date: 7/4/2025\n- Time: 4:12:44 PM\n- Duration: 30 minutes\n- Type: executive demo\n\n**Meeting Information:**\n- Join: https://meet.medspasync.com/demo/demo_acme-spa_1751580764741\n- Dial-in: +1-555-123-4567\n- Passcode: 123456\n\n**What to Expect:**\n- Executive overview of ROI and business impact\n- Technical demonstration of platform capabilities\n- Personalized insights for Sample Medical Spa\n- Q&A session\n\n**Preparation:**\n- Please have your team ready to discuss current challenges\n- We'll customize the demo based on your specific needs\n- Feel free to share any questions in advance\n\nWe look forward to showing you how MedSpa Analytics Pro can transform your practice!\n\nBest regards,\nThe MedSpa Analytics Pro Team\n      ",
+  "attachments": [
+    {
+      "name": "demo_preparation_guide.pdf",
+      "type": "application/pdf",
+      "content": "Demo preparation guide content..."
+    }
+  ]
+}

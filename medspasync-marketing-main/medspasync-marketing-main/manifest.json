@@ -1,0 +1,35 @@
+{
+  "name": "MedSpaSync Pro",
+  "short_name": "MedSpaSync Pro",
+  "description": "AI Intelligence Layer for Medical Spas - Stop losing 8+ hours weekly to manual reconciliation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "medical",
+    "productivity"
+  ],
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US"
+}

@@ -1,0 +1,153 @@
+{
+  "id": "onboarding_acme-spa_1751581213738",
+  "customerId": "acme-spa",
+  "status": "pending",
+  "created": "2025-07-03T22:20:13.738Z",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Platform Access Setup",
+      "description": "Configure user accounts and access permissions",
+      "duration": "1-2 hours",
+      "status": "pending",
+      "assignee": "Technical Team",
+      "resources": [
+        "user_guide.pdf",
+        "access_setup_video.mp4"
+      ]
+    },
+    {
+      "step": 2,
+      "title": "Data Integration",
+      "description": "Connect your PMS and payment systems",
+      "duration": "2-4 hours",
+      "status": "pending",
+      "assignee": "Integration Team",
+      "resources": [
+        "integration_guide.pdf",
+        "api_documentation.pdf"
+      ]
+    },
+    {
+      "step": 3,
+      "title": "Custom Configuration",
+      "description": "Configure treatments, staff, and business rules",
+      "duration": "1-2 hours",
+      "status": "pending",
+      "assignee": "Customer Success",
+      "resources": [
+        "configuration_guide.pdf",
+        "best_practices.pdf"
+      ]
+    },
+    {
+      "step": 4,
+      "title": "Team Training",
+      "description": "Train your team on platform features",
+      "duration": "2-3 hours",
+      "status": "pending",
+      "assignee": "Training Team",
+      "resources": [
+        "training_materials.pdf",
+        "video_tutorials.zip"
+      ]
+    },
+    {
+      "step": 5,
+      "title": "Go-Live Support",
+      "description": "Launch with dedicated support",
+      "duration": "1 week",
+      "status": "pending",
+      "assignee": "Support Team",
+      "resources": [
+        "support_guide.pdf",
+        "emergency_contacts.pdf"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "phase": "Week 1",
+      "activities": [
+        "Platform setup",
+        "Data integration",
+        "Initial configuration"
+      ],
+      "milestones": [
+        "Access granted",
+        "Data connected",
+        "Basic setup complete"
+      ]
+    },
+    {
+      "phase": "Week 2",
+      "activities": [
+        "Advanced configuration",
+        "Team training",
+        "Testing"
+      ],
+      "milestones": [
+        "Custom setup complete",
+        "Team trained",
+        "System tested"
+      ]
+    },
+    {
+      "phase": "Week 3",
+      "activities": [
+        "Go-live preparation",
+        "Final testing",
+        "Launch"
+      ],
+      "milestones": [
+        "Ready for launch",
+        "All systems tested",
+        "Live in production"
+      ]
+    }
+  ],
+  "resources": {
+    "documentation": [
+      "user_guide.pdf",
+      "admin_guide.pdf",
+      "api_documentation.pdf",
+      "best_practices.pdf"
+    ],
+    "videos": [
+      "platform_overview.mp4",
+      "dashboard_tutorial.mp4",
+      "reconciliation_guide.mp4",
+      "analytics_tutorial.mp4"
+    ],
+    "templates": [
+      "staff_roles_template.xlsx",
+      "treatment_configuration.xlsx",
+      "business_rules_template.xlsx"
+    ],
+    "support": [
+      "support_portal_url",
+      "emergency_contact_info",
+      "knowledge_base_url"
+    ]
+  },
+  "contacts": {
+    "customerSuccess": {
+      "name": "Sarah Johnson",
+      "email": "sarah.johnson@medspasync.com",
+      "phone": "+1-555-123-4567",
+      "role": "Customer Success Manager"
+    },
+    "technicalSupport": {
+      "name": "Mike Chen",
+      "email": "mike.chen@medspasync.com",
+      "phone": "+1-555-123-4568",
+      "role": "Technical Support Lead"
+    },
+    "integration": {
+      "name": "Lisa Rodriguez",
+      "email": "lisa.rodriguez@medspasync.com",
+      "phone": "+1-555-123-4569",
+      "role": "Integration Specialist"
+    }
+  }
+}

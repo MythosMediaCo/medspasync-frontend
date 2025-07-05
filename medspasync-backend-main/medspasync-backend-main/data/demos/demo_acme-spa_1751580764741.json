@@ -1,0 +1,15 @@
+{
+  "id": "demo_acme-spa_1751580764741",
+  "customerId": "acme-spa",
+  "scheduledFor": "2025-07-04T22:12:44.739Z",
+  "duration": 30,
+  "type": "executive",
+  "scenario": "urban",
+  "attendees": [
+    "Dr. John Smith",
+    "Practice Manager"
+  ],
+  "customizations": {},
+  "status": "scheduled",
+  "created": "2025-07-03T22:12:44.741Z"
+}

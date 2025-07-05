@@ -1,0 +1,530 @@
+# AUTONOMOUS FEATURE DEVELOPMENT TEMPLATE
+# Complete feature generation with maximum automation
+
+## FEATURE DEVELOPMENT PROTOCOL
+
+### COMPLETE FEATURE GENERATOR
+
+Create full-stack implementation for: [FEATURE_DESCRIPTION]
+
+#### ARCHITECTURE ANALYSIS
+- Identify all required components and their interactions
+- Design state management strategy (local vs global)
+- Plan API integration patterns and error handling
+- Map frontend components and routing requirements
+- Assess SEO and accessibility considerations
+
+#### FRONTEND IMPLEMENTATION
+- Create reusable UI components with proper styling
+- Implement state management and API integration
+- Add form validation and user feedback mechanisms
+- Ensure responsive design and accessibility
+- Implement progressive enhancement patterns
+
+#### TESTING STRATEGY
+- Generate unit tests for all business logic
+- Create integration tests for component interactions
+- Implement end-to-end tests for user workflows
+- Add performance and security test cases
+- Ensure comprehensive error handling
+
+#### DOCUMENTATION & DEPLOYMENT
+- Generate component documentation with examples
+- Create user guides and technical documentation
+- Update routing and navigation structure
+- Plan feature flag rollout strategy
+- Configure monitoring and analytics
+
+## COMPONENT DEVELOPMENT PATTERN
+
+### Standard Component Structure
+```typescript
+// Component.tsx (main component)
+// Component.test.tsx (unit tests)
+// Component.stories.tsx (Storybook stories)
+// Component.types.ts (TypeScript interfaces)
+// Component.module.css (if needed for complex styling)
+```
+
+### Component Implementation Template
+```tsx
+import React, { useState, useEffect, useCallback } from 'react'
+import { ComponentProps } from './Component.types'
+import './Component.module.css'
+
+/**
+ * ComponentName - Brief description of component purpose
+ * 
+ * @param props - Component props
+ * @returns JSX element
+ */
+export const ComponentName: React.FC<ComponentProps> = ({
+  // Destructure props with defaults
+  title = 'Default Title',
+  onAction,
+  children,
+  ...restProps
+}) => {
+  // State management
+  const [state, setState] = useState(initialState)
+  
+  // Event handlers
+  const handleAction = useCallback((data) => {
+    if (onAction) {
+      onAction(data)
+    }
+  }, [onAction])
+  
+  // Effects
+  useEffect(() => {
+    // Side effects
+  }, [])
+  
+  // Render
+  return (
+    <div className="component-name" {...restProps}>
+      <h2>{title}</h2>
+      {children}
+    </div>
+  )
+}
+```
+
+### TypeScript Interface Template
+```typescript
+// Component.types.ts
+export interface ComponentProps {
+  /** Component title */
+  title?: string
+  /** Action handler */
+  onAction?: (data: any) => void
+  /** Child elements */
+  children?: React.ReactNode
+  /** Additional CSS classes */
+  className?: string
+  /** Disabled state */
+  disabled?: boolean
+  /** Loading state */
+  loading?: boolean
+  /** Error state */
+  error?: string | null
+}
+
+export interface ComponentState {
+  /** Current state */
+  current: string
+  /** Loading state */
+  loading: boolean
+  /** Error state */
+  error: string | null
+  /** Data */
+  data: any[]
+}
+```
+
+### Test Implementation Template
+```typescript
+// Component.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { ComponentName } from './Component'
+
+describe('ComponentName', () => {
+  const defaultProps = {
+    title: 'Test Title',
+    onAction: vi.fn()
+  }
+  
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+  
+  it('should render correctly', () => {
+    render(<ComponentName {...defaultProps} />)
+    expect(screen.getByText('Test Title')).toBeInTheDocument()
+  })
+  
+  it('should handle user interactions', async () => {
+    render(<ComponentName {...defaultProps} />)
+    
+    const button = screen.getByRole('button')
+    fireEvent.click(button)
+    
+    await waitFor(() => {
+      expect(defaultProps.onAction).toHaveBeenCalledTimes(1)
+    })
+  })
+  
+  it('should handle error states', () => {
+    render(<ComponentName {...defaultProps} error="Test error" />)
+    expect(screen.getByText('Test error')).toBeInTheDocument()
+  })
+  
+  it('should handle loading states', () => {
+    render(<ComponentName {...defaultProps} loading={true} />)
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument()
+  })
+  
+  it('should be accessible', () => {
+    render(<ComponentName {...defaultProps} />)
+    
+    // Check for proper ARIA labels
+    expect(screen.getByRole('button')).toHaveAttribute('aria-label')
+    
+    // Check keyboard navigation
+    const button = screen.getByRole('button')
+    button.focus()
+    expect(button).toHaveFocus()
+  })
+})
+```
+
+## PAGE DEVELOPMENT PATTERN
+
+### Page Component Template
+```tsx
+// Page.tsx
+import React from 'react'
+import { Helmet } from 'react-helmet-async'
+import { PageProps } from './Page.types'
+import { ComponentName } from '../components/ComponentName'
+
+/**
+ * PageName - Page description
+ */
+export const PageName: React.FC<PageProps> = () => {
+  return (
+    <>
+      <Helmet>
+        <title>Page Title | MedSpaSync Pro</title>
+        <meta name="description" content="Page description" />
+        <meta name="keywords" content="relevant, keywords" />
+      </Helmet>
+      
+      <main className="page-name">
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-4xl font-bold mb-8">Page Title</h1>
+          
+          <ComponentName />
+        </div>
+      </main>
+    </>
+  )
+}
+```
+
+### Page Types Template
+```typescript
+// Page.types.ts
+export interface PageProps {
+  /** Page-specific props */
+}
+
+export interface PageData {
+  /** Page data structure */
+  title: string
+  content: string
+  metadata: {
+    title: string
+    description: string
+    keywords: string[]
+  }
+}
+```
+
+## HOOK DEVELOPMENT PATTERN
+
+### Custom Hook Template
+```typescript
+// useHookName.ts
+import { useState, useEffect, useCallback } from 'react'
+
+export interface UseHookNameOptions {
+  /** Hook options */
+  enabled?: boolean
+  timeout?: number
+}
+
+export interface UseHookNameReturn {
+  /** Hook return values */
+  data: any
+  loading: boolean
+  error: string | null
+  refetch: () => void
+}
+
+/**
+ * useHookName - Hook description
+ */
+export const useHookName = (options: UseHookNameOptions = {}): UseHookNameReturn => {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  
+  const fetchData = useCallback(async () => {
+    if (!options.enabled) return
+    
+    setLoading(true)
+    setError(null)
+    
+    try {
+      // API call or data processing
+      const result = await apiCall()
+      setData(result)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [options.enabled])
+  
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+  
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchData
+  }
+}
+```
+
+## UTILITY DEVELOPMENT PATTERN
+
+### Utility Function Template
+```typescript
+// utilityName.ts
+export interface UtilityOptions {
+  /** Utility options */
+  format?: string
+  locale?: string
+}
+
+/**
+ * utilityName - Utility function description
+ * 
+ * @param input - Input parameter
+ * @param options - Utility options
+ * @returns Processed result
+ * 
+ * @example
+ * ```typescript
+ * const result = utilityName('input', { format: 'json' })
+ * ```
+ */
+export const utilityName = (input: string, options: UtilityOptions = {}): string => {
+  // Input validation
+  if (!input) {
+    throw new Error('Input is required')
+  }
+  
+  // Processing logic
+  const processed = input.toUpperCase()
+  
+  // Return result
+  return processed
+}
+
+// Test cases
+export const utilityNameTestCases = [
+  {
+    input: 'test',
+    options: {},
+    expected: 'TEST'
+  },
+  {
+    input: 'hello world',
+    options: { format: 'uppercase' },
+    expected: 'HELLO WORLD'
+  }
+]
+```
+
+### Utility Test Template
+```typescript
+// utilityName.test.ts
+import { describe, it, expect } from 'vitest'
+import { utilityName, utilityNameTestCases } from './utilityName'
+
+describe('utilityName', () => {
+  it('should process input correctly', () => {
+    const result = utilityName('test')
+    expect(result).toBe('TEST')
+  })
+  
+  it('should handle empty input', () => {
+    expect(() => utilityName('')).toThrow('Input is required')
+  })
+  
+  it('should handle options correctly', () => {
+    const result = utilityName('hello', { format: 'uppercase' })
+    expect(result).toBe('HELLO')
+  })
+  
+  // Test all test cases
+  utilityNameTestCases.forEach(({ input, options, expected }) => {
+    it(`should handle "${input}" with options ${JSON.stringify(options)}`, () => {
+      const result = utilityName(input, options)
+      expect(result).toBe(expected)
+    })
+  })
+})
+```
+
+## API INTEGRATION PATTERN
+
+### API Service Template
+```typescript
+// apiService.ts
+export interface ApiResponse<T> {
+  data: T
+  status: number
+  message: string
+}
+
+export interface ApiError {
+  message: string
+  code: string
+  details?: any
+}
+
+/**
+ * API service for feature operations
+ */
+export class ApiService {
+  private baseUrl: string
+  
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl
+  }
+  
+  /**
+   * Fetch data from API
+   */
+  async fetchData<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options?.headers
+        },
+        ...options
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      return {
+        data,
+        status: response.status,
+        message: 'Success'
+      }
+    } catch (error) {
+      throw new ApiError({
+        message: error.message,
+        code: 'API_ERROR',
+        details: error
+      })
+    }
+  }
+  
+  /**
+   * Create new resource
+   */
+  async create<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
+    return this.fetchData<T>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  }
+  
+  /**
+   * Update existing resource
+   */
+  async update<T>(endpoint: string, data: any): Promise<ApiResponse<T>> {
+    return this.fetchData<T>(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  }
+  
+  /**
+   * Delete resource
+   */
+  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.fetchData<T>(endpoint, {
+      method: 'DELETE'
+    })
+  }
+}
+```
+
+## FEATURE IMPLEMENTATION CHECKLIST
+
+### Planning Phase
+- [ ] Analyze requirements and create technical specifications
+- [ ] Design component architecture and interactions
+- [ ] Plan state management strategy
+- [ ] Identify API integration points
+- [ ] Consider SEO and accessibility requirements
+
+### Development Phase
+- [ ] Create TypeScript interfaces and types
+- [ ] Implement core components with proper styling
+- [ ] Add comprehensive error handling
+- [ ] Implement form validation and user feedback
+- [ ] Ensure responsive design and accessibility
+
+### Testing Phase
+- [ ] Write unit tests for all components
+- [ ] Create integration tests for component interactions
+- [ ] Implement end-to-end tests for user workflows
+- [ ] Add performance and security tests
+- [ ] Validate accessibility compliance
+
+### Documentation Phase
+- [ ] Generate component documentation
+- [ ] Create user guides and examples
+- [ ] Update routing and navigation
+- [ ] Document API integration patterns
+- [ ] Create troubleshooting guides
+
+### Quality Assurance
+- [ ] Run comprehensive test suite
+- [ ] Perform code review and linting
+- [ ] Validate performance metrics
+- [ ] Check security compliance
+- [ ] Test cross-browser compatibility
+
+## AUTOMATED FEATURE GENERATION
+
+### Feature Generation Commands
+```bash
+# Generate new feature
+npm run generate:feature --name="FeatureName"
+
+# Generate component
+npm run generate:component --name="ComponentName"
+
+# Generate page
+npm run generate:page --name="PageName"
+
+# Generate hook
+npm run generate:hook --name="useHookName"
+
+# Generate utility
+npm run generate:utility --name="utilityName"
+```
+
+### Feature Templates
+- Component templates with TypeScript, tests, and stories
+- Page templates with SEO optimization
+- Hook templates with proper error handling
+- Utility templates with comprehensive testing
+- API service templates with error handling
+
+This template enables autonomous feature development with maximum automation while maintaining professional software quality standards. 

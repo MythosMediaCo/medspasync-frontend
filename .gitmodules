@@ -1,0 +1,3 @@
+[submodule "medspasync-backend"]
+	path = medspasync-backend-main
+	url = https://github.com/your-org/medspasync-backend.git 

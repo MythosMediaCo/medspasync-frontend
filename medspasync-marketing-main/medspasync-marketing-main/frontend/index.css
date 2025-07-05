@@ -1,0 +1,278 @@
+/* MedSpaSync Pro Marketing Site - Complete Design System Implementation */
+
+/* Import MedSpaSync Pro Design System first */
+@import './styles/design-system.css';
+
+/* Import Tailwind base layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Self-hosted Inter font */
+@font-face {
+  font-display: swap;
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/inter-v19-latin-regular.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  src: url('/fonts/inter-v19-latin-500.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  src: url('/fonts/inter-v19-latin-600.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/fonts/inter-v19-latin-700.woff2') format('woff2');
+}
+@font-face {
+  font-display: swap;
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  src: url('/fonts/inter-v19-latin-800.woff2') format('woff2');
+}
+
+/* Global base styles */
+body {
+  line-height: 1.6;
+  font-family: var(--font-primary);
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  margin: 0;
+  padding: 0;
+}
+
+/* Utility classes for animations and effects */
+.hidden-element { 
+  display: none !important; 
+}
+
+.visible-element { 
+  display: block; 
+}
+
+.spinner-medium {
+  width: 24px; 
+  height: 24px; 
+  border: 3px solid var(--color-grey-200);
+  border-top-color: var(--color-success); 
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* MedSpaSync Pro specific utility classes */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-grey-200) 25%, var(--color-grey-100) 50%, var(--color-grey-200) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.scroll-fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease-out;
+}
+
+.scroll-fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* Glassmorphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.45);
+}
+
+.glass-hover-dark:hover {
+  background: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* 3D card effects */
+.card-3d {
+  transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  transition: transform 0.3s ease;
+}
+
+.card-3d-hover:hover {
+  transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+}
+
+/* Abstract shapes */
+.shape-abstract {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  filter: blur(40px);
+  animation: float 6s ease-in-out infinite;
+}
+
+.shape-abstract-2 {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.15;
+  filter: blur(30px);
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Text gradients */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-grey-600) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-emerald {
+  background: linear-gradient(135deg, var(--color-success) 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Shimmer effect */
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Dark mode overrides */
+.dark .glass {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .card {
+  background: var(--color-grey-800);
+  border-color: var(--color-grey-700);
+}
+
+.dark .card-feature {
+  background: var(--color-grey-800);
+  border-color: var(--color-grey-700);
+}
+
+.dark .card-testimonial {
+  background: var(--color-grey-800);
+  border-left-color: var(--color-primary);
+}
+
+.dark .trust-indicator {
+  background: var(--color-grey-800);
+  border-color: var(--color-grey-700);
+  color: var(--color-secondary);
+}
+
+.dark .metric-highlight {
+  background: var(--color-grey-800);
+  border-left-color: var(--color-primary);
+}
+
+.dark .form-input {
+  background: var(--color-grey-800);
+  border-color: var(--color-grey-700);
+  color: var(--color-secondary);
+}
+
+.dark .form-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .card, .card-feature, .card-testimonial {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .card {
+    border: 2px solid var(--color-primary);
+  }
+  
+  .btn-primary, .btn-secondary, .btn-accent {
+    border: 2px solid currentColor;
+  }
+  
+  .trust-indicator {
+    border: 2px solid var(--color-primary);
+    background: var(--color-secondary);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .scroll-fade-in {
+    opacity: 1;
+    transform: none;
+  }
+}

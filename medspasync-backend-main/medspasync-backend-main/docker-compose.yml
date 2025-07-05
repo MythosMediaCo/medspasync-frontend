@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medspasync-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGO_URI=${MONGO_URI}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - ENABLE_TRIAL=true
+      - TRIAL_DAYS=14
+      - FRONTEND_URL=https://demo.medspasyncpro.com
+    volumes:
+      - .:/app
+    command: ["npm", "start"]

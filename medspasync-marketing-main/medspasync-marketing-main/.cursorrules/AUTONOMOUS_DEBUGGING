@@ -1,0 +1,131 @@
+# AUTONOMOUS DEBUGGING PROTOCOL
+# Systematic approach for resolving complex issues
+
+## DEBUGGING WORKFLOW
+
+### PHASE 1: RECONNAISSANCE
+- Add comprehensive logging statements to capture context
+- Analyze error patterns and stack traces systematically
+- Review recent git commits for potential causes
+- Check for similar issues in codebase using semantic search
+- Examine browser console, network tab, and performance metrics
+
+### PHASE 2: HYPOTHESIS GENERATION
+- Generate 3-5 potential root causes ranked by probability
+- Design targeted tests for each hypothesis
+- Create minimal reproduction cases
+- Map dependencies and interaction points
+- Assess impact scope and severity
+
+### PHASE 3: ITERATIVE RESOLUTION
+- Implement fixes starting with highest probability causes
+- Run automated tests after each change
+- Monitor system behavior and error rates
+- Continue iteration until issue fully resolved
+- Clean up debug code and logging
+
+### PHASE 4: VALIDATION & DOCUMENTATION
+- Verify fix doesn't introduce regressions
+- Add tests to prevent future occurrence
+- Update documentation with solution details
+- Extract learnings for .cursorrules improvement
+- Create knowledge base entry for similar issues
+
+## DEBUGGING TOOLS & TECHNIQUES
+
+### Error Analysis
+- Stack trace analysis with source map support
+- Error boundary implementation for React components
+- Performance profiling with React DevTools
+- Network request analysis and timing
+- Memory leak detection and analysis
+
+### Testing Strategies
+- Unit tests for isolated component behavior
+- Integration tests for component interactions
+- E2E tests for user workflow validation
+- Performance tests for regression detection
+- Visual regression tests for UI consistency
+
+### Monitoring & Logging
+- Structured logging with context preservation
+- Error tracking with user context
+- Performance monitoring with alerting
+- User experience metrics collection
+- Automated error reporting and analysis
+
+## AUTOMATED DEBUGGING COMMANDS
+
+### Investigation Commands
+```bash
+# Run comprehensive test suite
+npm run test:coverage
+
+# Type checking for TypeScript errors
+npm run type-check
+
+# Linting for code quality issues
+npm run lint
+
+# Performance analysis
+npm run lighthouse
+
+# Bundle analysis
+npm run build:analyze
+```
+
+### Debugging Workflow
+1. **Initial Assessment**: Run all automated checks
+2. **Context Gathering**: Collect error logs and user reports
+3. **Reproduction**: Create minimal test case
+4. **Analysis**: Apply systematic debugging approach
+5. **Resolution**: Implement and validate fix
+6. **Prevention**: Add tests and documentation
+
+## ERROR RECOVERY MECHANISMS
+
+### Automatic Recovery
+- Graceful degradation for non-critical features
+- Fallback UI components for failed renders
+- Retry mechanisms for network requests
+- Circuit breakers for repeated failures
+- Automatic rollback on critical errors
+
+### Manual Intervention Points
+- Production configuration changes
+- External API integrations
+- Security-related modifications
+- Performance-critical optimizations
+- Compliance-related updates
+
+## KNOWLEDGE BASE INTEGRATION
+
+### Pattern Recognition
+- Identify common error patterns
+- Create reusable debugging workflows
+- Maintain solution library
+- Update .cursorrules with learnings
+- Share knowledge across team
+
+### Continuous Improvement
+- Track debugging effectiveness metrics
+- Optimize debugging workflows
+- Update tools and techniques
+- Train team on new patterns
+- Regular review and refinement
+
+## SECURITY CONSIDERATIONS
+
+### Debug Information Handling
+- Sanitize error messages for production
+- Protect sensitive data in logs
+- Implement proper error boundaries
+- Secure debugging endpoints
+- Audit trail for debugging actions
+
+### Compliance Requirements
+- HIPAA compliance for healthcare data
+- GDPR compliance for user data
+- Audit logging for debugging activities
+- Data retention policies
+- Privacy protection measures 

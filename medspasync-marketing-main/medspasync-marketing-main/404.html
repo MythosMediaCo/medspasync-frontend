@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found | MedSpaSync Pro - AI Reconciliation Platform</title>
+  <meta name="description" content="Page not found. Return to MedSpaSync Pro to eliminate 8+ hours weekly of manual reconciliation with 95%+ AI accuracy." />
+  <meta name="robots" content="noindex, nofollow" />
+  
+  <!-- Brand Favicon -->
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Styles -->
+  <style>
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      color: #111827;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .container {
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(31, 41, 55, 0.25);
+      padding: 3rem;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid #e5e7eb;
+    }
+
+    .error-code {
+      font-size: 6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #059669, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 1.5rem;
+    }
+
+    .error-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .error-description {
+      font-size: 1.125rem;
+      color: #6b7280;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      font-weight: 600;
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 1rem;
+      margin-right: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .button-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.25);
+    }
+
+    .button-secondary {
+      background: white;
+      color: #374151;
+      font-weight: 600;
+      padding: 1rem 2rem;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      border: 2px solid #d1d5db;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .button-secondary:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    .help-section {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .help-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 1rem;
+    }
+
+    .help-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .help-link {
+      text-decoration: none;
+      color: #059669;
+      font-weight: 500;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #d1fae5;
+      background: #ecfdf5;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .help-link:hover {
+      background: #d1fae5;
+      transform: translateY(-1px);
+    }
+
+    .support-box {
+      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+      border: 2px solid #a7f3d0;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .support-text {
+      color: #047857;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .support-email {
+      color: #059669;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .support-email:hover {
+      text-decoration: underline;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 640px) {
+      .container {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+      }
+
+      .error-code {
+        font-size: 4rem;
+      }
+
+      .error-title {
+        font-size: 1.5rem;
+      }
+
+      .error-description {
+        font-size: 1rem;
+      }
+
+      .button-primary,
+      .button-secondary {
+        width: 100%;
+        margin-right: 0;
+        justify-content: center;
+      }
+
+      .help-links {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      }
+
+      .container {
+        background: #1e293b;
+        border-color: #334155;
+      }
+
+      .error-title {
+        color: #f1f5f9;
+      }
+
+      .error-description {
+        color: #cbd5e1;
+      }
+
+      .button-secondary {
+        background: #334155;
+        color: #f1f5f9;
+        border-color: #475569;
+      }
+
+      .button-secondary:hover {
+        background: #475569;
+      }
+
+      .help-section {
+        border-color: #334155;
+      }
+
+      .help-title {
+        color: #f1f5f9;
+      }
+
+      .help-link {
+        background: #064e3b;
+        border-color: #047857;
+        color: #10b981;
+      }
+
+      .help-link:hover {
+        background: #047857;
+      }
+
+      .support-box {
+        background: linear-gradient(135deg, #064e3b, #047857);
+        border-color: #059669;
+      }
+
+      .support-text {
+        color: #6ee7b7;
+      }
+
+      .support-email {
+        color: #10b981;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+    <!-- Error Display -->
+    <div class="error-code">404</div>
+    <h1 class="error-title">Reconciliation Route Not Found</h1>
+    <p class="error-description">
+      The page you're looking for doesn't exist, but don't worry—your AI reconciliation platform is still running perfectly.
+    </p>
+
+    <!-- Primary Actions -->
+    <div style="margin-bottom: 2rem;">
+      <a href="/" class="button-primary">
+        ← Return to Dashboard
+      </a>
+      <a href="https://app.medspasyncpro.com/demo" class="button-secondary" target="_blank" rel="noopener">
+        Try Live Demo
+      </a>
+    </div>
+
+    <!-- Help Section -->
+    <div class="help-section">
+      <h2 class="help-title">Popular Destinations</h2>
+      <div class="help-links">
+        <a href="/features" class="help-link">
+          AI Features
+        </a>
+        <a href="/pricing" class="help-link">
+          Pricing ($299/month)
+        </a>
+        <a href="/insights" class="help-link">
+          Industry Insights
+        </a>
+        <a href="/about" class="help-link">
+          About Our Team
+        </a>
+        <a href="/support" class="help-link">
+          Get Support
+        </a>
+        <a href="/contact" class="help-link">
+          Contact Us
+        </a>
+      </div>
+
+      <!-- Value Proposition Reminder -->
+      <div style="background: #f9fafb; border-radius: 0.75rem; padding: 1.5rem; margin: 2rem 0; border: 1px solid #e5e7eb;">
+        <div style="text-align: center; color: #374151;">
+          <div style="font-weight: 600; margin-bottom: 0.5rem;">Still Losing 8+ Hours Weekly to Manual Reconciliation?</div>
+          <div style="font-size: 0.875rem; color: #6b7280;">
+            Our AI achieves 95%+ accuracy while preventing $2,500+ monthly in missed revenue
+          </div>
+        </div>
+      </div>
+
+      <!-- Support Contact -->
+      <div class="support-box">
+        <div class="support-text">Need immediate help with reconciliation challenges?</div>
+        <div>
+          <a href="mailto:support@medspasyncpro.com" class="support-email">
+            support@medspasyncpro.com
+          </a>
+          <span style="color: #047857; font-size: 0.875rem; margin-left: 0.5rem;">
+            (24-hour response)
+          </span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Simple analytics for 404 tracking -->
+  <script>
+    // Log 404 for analytics (if available)
+    if (window.gtag) {
+      window.gtag('event', 'page_view', {
+        page_title: '404 - Page Not Found',
+        page_location: window.location.href,
+        custom_map: { 'dimension1': '404_error' }
+      });
+    }
+
+    // Log to console for development
+    console.log('404 Page Loaded:', window.location.href);
+  </script>
+</body>
+</html>

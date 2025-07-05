@@ -1,0 +1,1161 @@
+# Phase 2 Deployment Configuration for MedSpa Analytics Pro
+# Kubernetes manifests with production-ready settings
+# Performance targets: 99.9% uptime, auto-scaling, health monitoring
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: medspa-analytics-pro
+  labels:
+    name: medspa-analytics-pro
+    environment: production
+    phase: 2
+
+---
+# Redis Streams Configuration
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-streams
+  namespace: medspa-analytics-pro
+spec:
+  serviceName: redis-streams
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis-streams
+  template:
+    metadata:
+      labels:
+        app: redis-streams
+    spec:
+      containers:
+      - name: redis
+        image: redis:7.2-alpine
+        ports:
+        - containerPort: 6379
+        command:
+        - redis-server
+        - /etc/redis/redis.conf
+        - --cluster-enabled
+        - yes
+        - --cluster-config-file
+        - nodes.conf
+        - --cluster-node-timeout
+        - 5000
+        - --appendonly
+        - yes
+        - --maxmemory
+        - 2gb
+        - --maxmemory-policy
+        - allkeys-lru
+        volumeMounts:
+        - name: redis-config
+          mountPath: /etc/redis
+        - name: redis-data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: redis-config
+        configMap:
+          name: redis-config
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-data-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-streams
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: redis-streams
+  ports:
+  - port: 6379
+    targetPort: 6379
+  clusterIP: None
+
+---
+# PostgreSQL Analytics Database
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-analytics
+  namespace: medspa-analytics-pro
+spec:
+  serviceName: postgres-analytics
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-analytics
+  template:
+    metadata:
+      labels:
+        app: postgres-analytics
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "medspa_analytics"
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: password
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-data-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-analytics
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: postgres-analytics
+  ports:
+  - port: 5432
+    targetPort: 5432
+
+---
+# Real-time Data Pipeline Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realtime-pipeline
+  namespace: medspa-analytics-pro
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: realtime-pipeline
+  template:
+    metadata:
+      labels:
+        app: realtime-pipeline
+    spec:
+      containers:
+      - name: realtime-pipeline
+        image: medspa-analytics/realtime-pipeline:phase2
+        ports:
+        - containerPort: 3000
+        env:
+        - name: REDIS_HOST
+          value: "redis-streams"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: url
+        - name: NODE_ENV
+          value: "production"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 3000
+          failureThreshold: 30
+          periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: realtime-pipeline
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: realtime-pipeline
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: ClusterIP
+
+---
+# PMS Integration Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pms-integration
+  namespace: medspa-analytics-pro
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pms-integration
+  template:
+    metadata:
+      labels:
+        app: pms-integration
+    spec:
+      containers:
+      - name: pms-integration
+        image: medspa-analytics/pms-integration:phase2
+        ports:
+        - containerPort: 3001
+        env:
+        - name: REDIS_HOST
+          value: "redis-streams"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: url
+        - name: ZENOTI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pms-secrets
+              key: zenoti-api-key
+        - name: NEXTECH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: pms-secrets
+              key: nextech-client-id
+        - name: NEXTECH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pms-secrets
+              key: nextech-client-secret
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pms-integration
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: pms-integration
+  ports:
+  - port: 3001
+    targetPort: 3001
+  type: ClusterIP
+
+---
+# Advanced Analytics Engine Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-engine
+  namespace: medspa-analytics-pro
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: analytics-engine
+  template:
+    metadata:
+      labels:
+        app: analytics-engine
+    spec:
+      containers:
+      - name: analytics-engine
+        image: medspa-analytics/analytics-engine:phase2
+        ports:
+        - containerPort: 3002
+        env:
+        - name: REDIS_HOST
+          value: "redis-streams"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: url
+        - name: ML_MODEL_PATH
+          value: "/models"
+        - name: TENSORFLOW_SERVING_URL
+          value: "http://tensorflow-serving:8501"
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: ml-models
+          mountPath: /models
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: ml-models
+        persistentVolumeClaim:
+          claimName: ml-models-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-engine
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: analytics-engine
+  ports:
+  - port: 3002
+    targetPort: 3002
+  type: ClusterIP
+
+---
+# TensorFlow Serving for ML Models
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorflow-serving
+  namespace: medspa-analytics-pro
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tensorflow-serving
+  template:
+    metadata:
+      labels:
+        app: tensorflow-serving
+    spec:
+      containers:
+      - name: tensorflow-serving
+        image: tensorflow/serving:2.13.0
+        ports:
+        - containerPort: 8500
+        - containerPort: 8501
+        args:
+        - --model_config_file=/models/models.config
+        - --port=8500
+        - --rest_api_port=8501
+        volumeMounts:
+        - name: ml-models
+          mountPath: /models
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /v1/models
+            port: 8501
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /v1/models
+            port: 8501
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: ml-models
+        persistentVolumeClaim:
+          claimName: ml-models-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tensorflow-serving
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: tensorflow-serving
+  ports:
+  - name: grpc
+    port: 8500
+    targetPort: 8500
+  - name: rest
+    port: 8501
+    targetPort: 8501
+  type: ClusterIP
+
+---
+# Real-time Dashboard API Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard-api
+  namespace: medspa-analytics-pro
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dashboard-api
+  template:
+    metadata:
+      labels:
+        app: dashboard-api
+    spec:
+      containers:
+      - name: dashboard-api
+        image: medspa-analytics/dashboard-api:phase2
+        ports:
+        - containerPort: 3003
+        env:
+        - name: REDIS_HOST
+          value: "redis-streams"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: password
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: url
+        - name: REALTIME_PIPELINE_URL
+          value: "http://realtime-pipeline:3000"
+        - name: ANALYTICS_ENGINE_URL
+          value: "http://analytics-engine:3002"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3003
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-api
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: dashboard-api
+  ports:
+  - port: 3003
+    targetPort: 3003
+  type: ClusterIP
+
+---
+# API Gateway (Kong)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: medspa-analytics-pro
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: kong
+        image: kong:3.4
+        ports:
+        - containerPort: 8000
+        - containerPort: 8443
+        env:
+        - name: KONG_DATABASE
+          value: "off"
+        - name: KONG_PROXY_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_PROXY_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_LISTEN
+          value: "0.0.0.0:8001"
+        - name: KONG_DECLARATIVE_CONFIG
+          value: "/etc/kong/kong.yml"
+        volumeMounts:
+        - name: kong-config
+          mountPath: /etc/kong
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: kong-config
+        configMap:
+          name: kong-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: medspa-analytics-pro
+spec:
+  selector:
+    app: api-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+  - name: https
+    port: 443
+    targetPort: 8443
+  type: LoadBalancer
+
+---
+# Horizontal Pod Autoscaler for Real-time Pipeline
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: realtime-pipeline-hpa
+  namespace: medspa-analytics-pro
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: realtime-pipeline
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+
+---
+# Horizontal Pod Autoscaler for Analytics Engine
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: analytics-engine-hpa
+  namespace: medspa-analytics-pro
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: analytics-engine
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 120
+
+---
+# Horizontal Pod Autoscaler for Dashboard API
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dashboard-api-hpa
+  namespace: medspa-analytics-pro
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: dashboard-api
+  minReplicas: 3
+  maxReplicas: 12
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 75
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-pvc
+  namespace: medspa-analytics-pro
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data-pvc
+  namespace: medspa-analytics-pro
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ml-models-pvc
+  namespace: medspa-analytics-pro
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+
+---
+# ConfigMaps
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: medspa-analytics-pro
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    port 6379
+    timeout 0
+    tcp-keepalive 300
+    daemonize no
+    supervised no
+    pidfile /var/run/redis_6379.pid
+    loglevel notice
+    logfile ""
+    databases 16
+    save 900 1
+    save 300 10
+    save 60 10000
+    stop-writes-on-bgsave-error yes
+    rdbcompression yes
+    rdbchecksum yes
+    dbfilename dump.rdb
+    dir /data
+    maxmemory 2gb
+    maxmemory-policy allkeys-lru
+    appendonly yes
+    appendfilename "appendonly.aof"
+    appendfsync everysec
+    no-appendfsync-on-rewrite no
+    auto-aof-rewrite-percentage 100
+    auto-aof-rewrite-min-size 64mb
+    aof-load-truncated yes
+    aof-use-rdb-preamble yes
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-config
+  namespace: medspa-analytics-pro
+data:
+  kong.yml: |
+    _format_version: "2.1"
+    _transform: true
+    
+    services:
+    - name: realtime-pipeline-service
+      url: http://realtime-pipeline:3000
+      routes:
+      - name: realtime-pipeline-route
+        paths:
+        - /api/v1/realtime
+        strip_path: false
+        protocols:
+        - http
+        - https
+    
+    - name: pms-integration-service
+      url: http://pms-integration:3001
+      routes:
+      - name: pms-integration-route
+        paths:
+        - /api/v1/pms
+        strip_path: false
+        protocols:
+        - http
+        - https
+    
+    - name: analytics-engine-service
+      url: http://analytics-engine:3002
+      routes:
+      - name: analytics-engine-route
+        paths:
+        - /api/v1/analytics
+        strip_path: false
+        protocols:
+        - http
+        - https
+    
+    - name: dashboard-api-service
+      url: http://dashboard-api:3003
+      routes:
+      - name: dashboard-api-route
+        paths:
+        - /api/v1/dashboard
+        strip_path: false
+        protocols:
+        - http
+        - https
+    
+    plugins:
+    - name: rate-limiting
+      config:
+        minute: 1000
+        hour: 10000
+        policy: local
+      route: realtime-pipeline-route
+    
+    - name: rate-limiting
+      config:
+        minute: 500
+        hour: 5000
+        policy: local
+      route: pms-integration-route
+    
+    - name: rate-limiting
+      config:
+        minute: 200
+        hour: 2000
+        policy: local
+      route: analytics-engine-route
+    
+    - name: rate-limiting
+      config:
+        minute: 300
+        hour: 3000
+        policy: local
+      route: dashboard-api-route
+    
+    - name: cors
+      config:
+        origins:
+        - "*"
+        methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        headers:
+        - Content-Type
+        - Authorization
+        exposed_headers:
+        - X-Total-Count
+        credentials: true
+        max_age: 3600
+      route: realtime-pipeline-route
+    
+    - name: cors
+      config:
+        origins:
+        - "*"
+        methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        headers:
+        - Content-Type
+        - Authorization
+        exposed_headers:
+        - X-Total-Count
+        credentials: true
+        max_age: 3600
+      route: pms-integration-route
+    
+    - name: cors
+      config:
+        origins:
+        - "*"
+        methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        headers:
+        - Content-Type
+        - Authorization
+        exposed_headers:
+        - X-Total-Count
+        credentials: true
+        max_age: 3600
+      route: analytics-engine-route
+    
+    - name: cors
+      config:
+        origins:
+        - "*"
+        methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+        headers:
+        - Content-Type
+        - Authorization
+        exposed_headers:
+        - X-Total-Count
+        credentials: true
+        max_age: 3600
+      route: dashboard-api-route
+
+---
+# Secrets (These should be created separately with proper security)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-secret
+  namespace: medspa-analytics-pro
+type: Opaque
+data:
+  password: <base64-encoded-redis-password>
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: medspa-analytics-pro
+type: Opaque
+data:
+  username: <base64-encoded-postgres-username>
+  password: <base64-encoded-postgres-password>
+  url: <base64-encoded-postgres-url>
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pms-secrets
+  namespace: medspa-analytics-pro
+type: Opaque
+data:
+  zenoti-api-key: <base64-encoded-zenoti-api-key>
+  nextech-client-id: <base64-encoded-nextech-client-id>
+  nextech-client-secret: <base64-encoded-nextech-client-secret>
+  vagaro-api-key: <base64-encoded-vagaro-api-key>
+  aesthetic-record-api-key: <base64-encoded-aesthetic-record-api-key>
+  aestheticspro-api-key: <base64-encoded-aestheticspro-api-key>
+
+---
+# Network Policies for Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: medspa-analytics-network-policy
+  namespace: medspa-analytics-pro
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: medspa-analytics-pro
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 3001
+    - protocol: TCP
+      port: 3002
+    - protocol: TCP
+      port: 3003
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 8500
+    - protocol: TCP
+      port: 8501
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: medspa-analytics-pro
+    ports:
+    - protocol: TCP
+      port: 3000
+    - protocol: TCP
+      port: 3001
+    - protocol: TCP
+      port: 3002
+    - protocol: TCP
+      port: 3003
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 8500
+    - protocol: TCP
+      port: 8501
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+
+---
+# Resource Quotas
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: medspa-analytics-quota
+  namespace: medspa-analytics-pro
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    persistentvolumeclaims: "10"
+    services: "10"
+    services.loadbalancers: "2"
+
+---
+# Priority Classes
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: medspa-analytics-high-priority
+value: 1000000
+globalDefault: false
+description: "High priority for MedSpa Analytics Pro services"
+
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: medspa-analytics-medium-priority
+value: 500000
+globalDefault: false
+description: "Medium priority for MedSpa Analytics Pro services" 

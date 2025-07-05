@@ -1,0 +1,339 @@
+# deployment/100k-tps-deployment.yml
+# Production deployment configuration for 100K+ TPS capability
+
+version: '3.8'
+
+services:
+  # Main application with auto-scaling
+  app:
+    build: .
+    image: medspasync-backend:latest
+    container_name: medspasync-backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_CLUSTER_1_HOST=${REDIS_CLUSTER_1_HOST}
+      - REDIS_CLUSTER_2_HOST=${REDIS_CLUSTER_2_HOST}
+      - REDIS_CLUSTER_3_HOST=${REDIS_CLUSTER_3_HOST}
+      - REDIS_CLUSTER_4_HOST=${REDIS_CLUSTER_4_HOST}
+      - REDIS_CLUSTER_5_HOST=${REDIS_CLUSTER_5_HOST}
+      - REDIS_CLUSTER_6_HOST=${REDIS_CLUSTER_6_HOST}
+      - REDIS_CLUSTER_7_HOST=${REDIS_CLUSTER_7_HOST}
+      - REDIS_CLUSTER_8_HOST=${REDIS_CLUSTER_8_HOST}
+      - REDIS_CLUSTER_9_HOST=${REDIS_CLUSTER_9_HOST}
+      - REDIS_CLUSTER_10_HOST=${REDIS_CLUSTER_10_HOST}
+      - REDIS_CLUSTER_11_HOST=${REDIS_CLUSTER_11_HOST}
+      - REDIS_CLUSTER_12_HOST=${REDIS_CLUSTER_12_HOST}
+      - CLOUDFLARE_ZONE_ID=${CLOUDFLARE_ZONE_ID}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - MONITORING_WEBHOOK=${MONITORING_WEBHOOK}
+    ports:
+      - "3000:3000"
+    deploy:
+      replicas: 10  # Start with 10 instances
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    networks:
+      - medspasync-network
+    depends_on:
+      - postgres-primary
+      - redis-cluster
+
+  # Load balancer (Nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: medspasync-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - medspasync-network
+    depends_on:
+      - app
+
+  # PostgreSQL Primary
+  postgres-primary:
+    image: postgres:15-alpine
+    container_name: medspasync-postgres-primary
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_primary_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - medspasync-network
+    command: >
+      postgres
+      -c max_connections=1000
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+      -c maintenance_work_mem=512MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c max_worker_processes=8
+      -c max_parallel_workers_per_gather=4
+      -c max_parallel_workers=8
+      -c max_parallel_maintenance_workers=4
+
+  # PostgreSQL Replica 1
+  postgres-replica-1:
+    image: postgres:15-alpine
+    container_name: medspasync-postgres-replica-1
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - postgres_replica_1_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - medspasync-network
+    command: >
+      postgres
+      -c hot_standby=on
+      -c max_connections=1000
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+
+  # PostgreSQL Replica 2
+  postgres-replica-2:
+    image: postgres:15-alpine
+    container_name: medspasync-postgres-replica-2
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - postgres_replica_2_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - medspasync-network
+    command: >
+      postgres
+      -c hot_standby=on
+      -c max_connections=1000
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+
+  # Redis Cluster Nodes
+  redis-cluster-1:
+    image: redis:7-alpine
+    container_name: medspasync-redis-cluster-1
+    restart: unless-stopped
+    ports:
+      - "7000:6379"
+    volumes:
+      - redis_cluster_1_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+
+  redis-cluster-2:
+    image: redis:7-alpine
+    container_name: medspasync-redis-cluster-2
+    restart: unless-stopped
+    ports:
+      - "7001:6379"
+    volumes:
+      - redis_cluster_2_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+
+  redis-cluster-3:
+    image: redis:7-alpine
+    container_name: medspasync-redis-cluster-3
+    restart: unless-stopped
+    ports:
+      - "7002:6379"
+    volumes:
+      - redis_cluster_3_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+
+  redis-cluster-4:
+    image: redis:7-alpine
+    container_name: medspasync-redis-cluster-4
+    restart: unless-stopped
+    ports:
+      - "7003:6379"
+    volumes:
+      - redis_cluster_4_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+
+  redis-cluster-5:
+    image: redis:7-alpine
+    container_name: medspasync-redis-cluster-5
+    restart: unless-stopped
+    ports:
+      - "7004:6379"
+    volumes:
+      - redis_cluster_5_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+
+  redis-cluster-6:
+    image: redis:7-alpine
+    container_name: medspasync-redis-cluster-6
+    restart: unless-stopped
+    ports:
+      - "7005:6379"
+    volumes:
+      - redis_cluster_6_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+
+  # Redis dedicated instances
+  redis-session:
+    image: redis:7-alpine
+    container_name: medspasync-redis-session
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_session_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: medspasync-redis-cache
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_cache_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+
+  redis-queue:
+    image: redis:7-alpine
+    container_name: medspasync-redis-queue
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_queue_data:/data
+    networks:
+      - medspasync-network
+    command: redis-server --port 6379 --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  # Monitoring and metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: medspasync-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - medspasync-network
+    command: >
+      --config.file=/etc/prometheus/prometheus.yml
+      --storage.tsdb.path=/prometheus
+      --web.console.libraries=/etc/prometheus/console_libraries
+      --web.console.templates=/etc/prometheus/consoles
+      --storage.tsdb.retention.time=200h
+      --web.enable-lifecycle
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: medspasync-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    networks:
+      - medspasync-network
+
+  # Load testing service
+  load-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.loadtest
+    container_name: medspasync-load-tester
+    environment:
+      - LOAD_TEST_URL=http://nginx
+    networks:
+      - medspasync-network
+    depends_on:
+      - nginx
+    profiles:
+      - loadtest
+
+volumes:
+  postgres_primary_data:
+  postgres_replica_1_data:
+  postgres_replica_2_data:
+  redis_cluster_1_data:
+  redis_cluster_2_data:
+  redis_cluster_3_data:
+  redis_cluster_4_data:
+  redis_cluster_5_data:
+  redis_cluster_6_data:
+  redis_session_data:
+  redis_cache_data:
+  redis_queue_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  medspasync-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

@@ -1,0 +1,1248 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+  MANAGER
+  PRACTITIONER
+}
+
+enum ClientStatus {
+  ACTIVE
+  VIP
+  INACTIVE
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// New enums for reporting system
+enum FileProcessingStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ReportStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  JSON
+  INTERACTIVE_DASHBOARD
+}
+
+enum POSIntegrationType {
+  ALLE
+  ASPIRE
+  ZENOTI
+  VAGARO
+  MINDBODY
+  BOULEVARD
+}
+
+enum IntegrationStatus {
+  CONFIGURED
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+// New enums for subscription and registration system
+enum SubscriptionTier {
+  CORE
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PAST_DUE
+  CANCELED
+  TRIAL
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  UNDER_REVIEW
+  AUTONOMOUS_APPROVED
+}
+
+enum AutonomousDecisionType {
+  AUTONOMOUS
+  SUPERVISED
+  HUMAN_ESCALATION
+}
+
+enum BiasDetectionStatus {
+  SAFE
+  POTENTIAL_BIAS
+  BIAS_DETECTED
+  MITIGATED
+}
+
+model User {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  password   String
+  practiceId String?
+  role       UserRole  @default(STAFF)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  staff      Staff?
+  practice   Practice? @relation(fields: [practiceId], references: [id])
+
+  // Reporting system relations
+  fileProcessingJobs FileProcessingJob[]
+  generatedReports   GeneratedReport[]
+  scheduledReports   ScheduledReport[]
+  posIntegrations    POSIntegration[]
+  auditLogs          AuditLog[]
+
+  // AI system relations
+  aiRequestLogs AIRequestLog[]
+
+  // Enhanced user management relations
+  preferences UserPreference[]
+  sessions    UserSession[]
+  dashboards  BIDashboard[]
+
+  // New relations
+  clientNotes     ClientNote[]
+  notifications   Notification[]
+  securityAudits  SecurityAudit[]
+  analyticsEvents AnalyticsEvent[]
+  ReportSchedule  ReportSchedule[]
+  Tenant          Tenant?          @relation(fields: [tenantId], references: [id])
+  tenantId        String?          @db.Uuid
+}
+
+model Client {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String @map("tenant_id") @db.Uuid
+
+  // Encrypted PHI fields (stored as bytes)
+  encryptedFirstName        Bytes  @map("encrypted_first_name")
+  encryptedLastName         Bytes  @map("encrypted_last_name")
+  encryptedEmail            Bytes  @map("encrypted_email")
+  encryptedPhone            Bytes? @map("encrypted_phone")
+  encryptedDateOfBirth      Bytes? @map("encrypted_date_of_birth")
+  encryptedMedicalHistory   Bytes? @map("encrypted_medical_history")
+  encryptedEmergencyContact Bytes? @map("encrypted_emergency_contact")
+  encryptedAllergies        Bytes? @map("encrypted_allergies")
+  encryptedMedications      Bytes? @map("encrypted_medications")
+
+  // Searchable hashes (for finding without decryption)
+  firstNameHash String  @map("first_name_hash")
+  emailHash     String  @unique @map("email_hash")
+  phoneHash     String? @map("phone_hash")
+
+  // Registration metadata
+  registrationSource     String             @default("web") @map("registration_source")
+  registrationStatus     RegistrationStatus @default(PENDING) @map("registration_status")
+  autonomousRegistration Boolean            @default(false) @map("autonomous_registration")
+  confidenceScore        Decimal?           @map("confidence_score") @db.Decimal(5, 4)
+  biasScore              Decimal?           @map("bias_score") @db.Decimal(5, 4)
+
+  // Subscription context
+  createdUnderTier SubscriptionTier @map("created_under_tier")
+
+  // HIPAA compliance
+  hipaaConsent         Boolean @default(false) @map("hipaa_consent")
+  privacyPolicyConsent Boolean @default(false) @map("privacy_policy_consent")
+  marketingConsent     Boolean @default(false) @map("marketing_consent")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  createdBy String? @map("created_by") @db.Uuid
+  updatedBy String? @map("updated_by") @db.Uuid
+
+  // Relations
+  tenant              Tenant                 @relation(fields: [tenantId], references: [id])
+  appointments        Appointment[]
+  auditLogs           RegistrationAuditLog[]
+  autonomousDecisions AutonomousDecision[]
+  ClientNote          ClientNote[]
+  ClientTag           ClientTag?             @relation(fields: [clientTagId], references: [id])
+  clientTagId         String?
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([emailHash])
+  @@index([tenantId, autonomousRegistration, confidenceScore(sort: Desc)])
+  @@index([tenantId, registrationStatus])
+  @@map("clients")
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  name         String
+  category     String
+  description  String?
+  duration     Int
+  price        Float
+  active       Boolean       @default(true)
+  appointments Appointment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Staff {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  practiceId      String
+  firstName       String
+  lastName        String
+  role            UserRole
+  specializations String[]
+  phone           String?
+  email           String?
+  workingHours    Json?
+  hourlyRate      Float?
+  active          Boolean       @default(true)
+  appointments    Appointment[]
+  user            User          @relation(fields: [userId], references: [id])
+  practice        Practice      @relation(fields: [practiceId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Appointment {
+  id            String            @id @default(cuid())
+  practiceId    String
+  clientId      String
+  serviceId     String
+  staffId       String
+  dateTime      DateTime
+  duration      Int
+  status        AppointmentStatus @default(SCHEDULED)
+  notes         String?
+  price         Float
+  paymentStatus PaymentStatus     @default(PENDING)
+
+  client   Client   @relation(fields: [clientId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+  staff    Staff    @relation(fields: [staffId], references: [id])
+  practice Practice @relation(fields: [practiceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Practice {
+  id           String        @id @default(cuid())
+  name         String
+  address      String?
+  phone        String?
+  users        User[]
+  staff        Staff[]
+  appointments Appointment[]
+
+  // Reporting system relations
+  fileProcessingJobs FileProcessingJob[]
+  generatedReports   GeneratedReport[]
+  scheduledReports   ScheduledReport[]
+  posIntegrations    POSIntegration[]
+
+  // AI system relations
+  aiInsights          AIInsight[]
+  aiRecommendations   AIRecommendation[]
+  aiModelPerformance  AIModelPerformance[]
+  aiRequestLogs       AIRequestLog[]
+  communicationAlerts CommunicationAlert[]
+  manualActions       ManualAction[]
+  marketingCampaigns  MarketingCampaign[]
+
+  // Enhanced relations
+  userSessions           UserSession[]
+  aiModelMetrics         AIModelMetrics[]
+  predictiveInsights     PredictiveInsight[]
+  reportSchedules        ReportSchedule[]
+  dashboards             BIDashboard[]
+  communicationTemplates CommunicationTemplate[]
+
+  // New relations
+  securityAudits         SecurityAudit[]
+  complianceChecks       ComplianceCheck[]
+  thirdPartyIntegrations ThirdPartyIntegration[]
+  dataSyncs              DataSync[]
+  notifications          Notification[]
+  workflows              Workflow[]
+  analyticsEvents        AnalyticsEvent[]
+  performanceMetrics     PerformanceMetric[]
+  clientTags             ClientTag[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
+  ReportTemplate ReportTemplate[]
+  AuditLog       AuditLog[]
+}
+
+// ============================================================================
+// REPORTING SYSTEM MODELS
+// ============================================================================
+// File Processing Jobs
+// Tracks file upload and processing status
+model FileProcessingJob {
+  id             String               @id @default(cuid())
+  tenantId       String
+  userId         String
+  status         FileProcessingStatus @default(PROCESSING)
+  fileName       String
+  filePath       String
+  fileSize       Int
+  recordCount    Int?
+  metadata       Json? // Schema mapping, validation results
+  error          String?
+  startTime      DateTime             @default(now())
+  endTime        DateTime?
+  processingTime Int? // in milliseconds
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id])
+  practice Practice? @relation(fields: [tenantId], references: [id])
+
+  // Generated reports from this job
+  generatedReports GeneratedReport[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([status])
+  @@index([startTime])
+}
+
+// Report Templates
+// Pre-built and custom report templates
+model ReportTemplate {
+  id           String  @id @default(cuid())
+  tenantId     String? // null for system templates
+  name         String
+  description  String?
+  templateData Json // Template configuration
+  isSystem     Boolean @default(false)
+  isActive     Boolean @default(true)
+
+  // Relations
+  practice Practice? @relation(fields: [tenantId], references: [id])
+
+  // Generated reports using this template
+  generatedReports GeneratedReport[]
+
+  // Enhanced relations
+  schedules ReportSchedule[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  ScheduledReport ScheduledReport[]
+
+  @@index([tenantId])
+  @@index([isSystem])
+  @@index([isActive])
+}
+
+// Generated Reports
+// Stores generated report metadata and file paths
+model GeneratedReport {
+  id         String         @id @default(cuid())
+  tenantId   String
+  userId     String
+  templateId String
+  jobId      String? // Optional link to file processing job
+  status     ReportStatus   @default(PENDING)
+  reportData Json? // Report data and insights
+  filePaths  Json? // Paths to generated files (PDF, Excel, etc.)
+  formats    ReportFormat[]
+  metadata   Json? // Generation metadata
+
+  // Relations
+  user     User               @relation(fields: [userId], references: [id])
+  practice Practice           @relation(fields: [tenantId], references: [id])
+  template ReportTemplate     @relation(fields: [templateId], references: [id])
+  fileJob  FileProcessingJob? @relation(fields: [jobId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([templateId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Scheduled Reports
+// Recurring report generation schedules
+model ScheduledReport {
+  id             String         @id @default(cuid())
+  tenantId       String
+  userId         String
+  templateId     String
+  name           String
+  description    String?
+  cronExpression String
+  isActive       Boolean        @default(true)
+  recipients     Json? // Email recipients
+  formats        ReportFormat[]
+  lastRun        DateTime?
+  nextRun        DateTime?
+
+  // Relations
+  user     User           @relation(fields: [userId], references: [id])
+  practice Practice       @relation(fields: [tenantId], references: [id])
+  template ReportTemplate @relation(fields: [templateId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([isActive])
+  @@index([nextRun])
+}
+
+// POS Integrations
+// Configuration for POS system integrations
+model POSIntegration {
+  id         String             @id @default(cuid())
+  tenantId   String
+  userId     String
+  type       POSIntegrationType
+  name       String
+  status     IntegrationStatus  @default(CONFIGURED)
+  config     Json // Encrypted configuration
+  lastSync   DateTime?
+  syncStatus String?
+  error      String?
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id])
+  practice Practice @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, type])
+  @@index([tenantId])
+  @@index([type])
+  @@index([status])
+}
+
+// Audit Logs
+// Comprehensive audit trail for HIPAA compliance
+model AuditLog {
+  id         String  @id @default(cuid())
+  tenantId   String?
+  userId     String
+  action     String
+  resource   String?
+  resourceId String?
+  details    Json?
+  ipAddress  String?
+  userAgent  String?
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id])
+  practice Practice? @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// INDEXES FOR PERFORMANCE
+// ============================================================================
+
+// ============================================================================
+// AI SYSTEM MODELS
+// ============================================================================
+// AI Insights
+// Stores AI-generated business insights
+enum InsightType {
+  REVENUE
+  OPERATIONAL
+  PATIENT
+  STAFF
+  MARKETING
+  FINANCIAL
+  COMPLIANCE
+}
+
+enum InsightPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum InsightImpact {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum RecommendationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  DISMISSED
+}
+
+enum RecommendationPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum AIModelType {
+  REVENUE_FORECASTING
+  CHURN_PREDICTION
+  DEMAND_FORECASTING
+  PRICING_OPTIMIZATION
+  SENTIMENT_ANALYSIS
+  TREATMENT_OUTCOMES
+  SCHEDULING_OPTIMIZATION
+  INVENTORY_FORECASTING
+}
+
+model AIInsight {
+  id          String          @id @default(cuid())
+  tenantId    String
+  type        InsightType
+  title       String
+  description String
+  impact      InsightImpact
+  confidence  Float // 0.0 to 1.0
+  priority    InsightPriority
+  dataSupport Json? // Supporting data and metrics
+  metadata    Json? // Additional metadata
+
+  // Relations
+  practice        Practice           @relation(fields: [tenantId], references: [id])
+  recommendations AIRecommendation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([type])
+  @@index([priority])
+  @@index([impact])
+  @@index([createdAt])
+}
+
+model AIRecommendation {
+  id             String                 @id @default(cuid())
+  tenantId       String
+  insightId      String?
+  action         String
+  description    String
+  expectedImpact String
+  implementation String
+  timeline       String
+  resources      Json? // Array of required resources
+  priority       RecommendationPriority
+  status         RecommendationStatus   @default(PENDING)
+  actionType     String? // Type of action (pricing_adjustment, staff_scheduling, etc.)
+  actionData     Json? // Data needed to execute the action
+
+  // Relations
+  practice Practice   @relation(fields: [tenantId], references: [id])
+  insight  AIInsight? @relation(fields: [insightId], references: [id])
+
+  createdAt  DateTime  @default(now())
+  executedAt DateTime?
+  updatedAt  DateTime  @updatedAt
+
+  @@index([tenantId])
+  @@index([insightId])
+  @@index([priority])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AIModelPerformance {
+  id           String      @id @default(cuid())
+  tenantId     String?
+  modelName    String
+  modelType    AIModelType
+  accuracy     Float // 0.0 to 1.0
+  responseTime Int // milliseconds
+  throughput   Int // requests per second
+  lastUpdated  DateTime    @default(now())
+  metadata     Json? // Additional performance metrics
+
+  // Relations
+  practice Practice? @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([modelName])
+  @@index([modelType])
+  @@index([lastUpdated])
+}
+
+model AIRequestLog {
+  id           String  @id @default(cuid())
+  tenantId     String?
+  userId       String
+  requestType  String
+  modelName    String?
+  responseTime Int // milliseconds
+  status       String // success, error
+  error        String?
+  metadata     Json? // Request/response metadata
+
+  // Relations
+  practice Practice? @relation(fields: [tenantId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([requestType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CommunicationAlert {
+  id              String    @id @default(cuid())
+  tenantId        String
+  patientId       String?
+  communicationId String?
+  urgencyLevel    String // high, medium, low
+  alertType       String
+  description     String
+  resolved        Boolean   @default(false)
+  resolvedAt      DateTime?
+
+  // Relations
+  practice Practice @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([urgencyLevel])
+  @@index([resolved])
+  @@index([createdAt])
+}
+
+model ManualAction {
+  id               String    @id @default(cuid())
+  tenantId         String
+  recommendationId String
+  action           String
+  description      String
+  priority         String
+  status           String    @default("pending")
+  executedAt       DateTime?
+
+  // Relations
+  practice Practice @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([recommendationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MarketingCampaign {
+  id             String   @id @default(cuid())
+  tenantId       String
+  name           String
+  type           String
+  targetAudience String?
+  budget         Float?
+  startDate      DateTime
+  endDate        DateTime
+  status         String   @default("active")
+
+  // Relations
+  practice Practice @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+// ============================================================================
+// ENHANCED USER MANAGEMENT MODELS
+// ============================================================================
+// User Preferences
+// Stores user-specific preferences for dashboard, notifications, mobile, and AI features
+model UserPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String // ui, notifications, privacy, etc.
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, category, key])
+  @@map("user_preferences")
+}
+
+// User Sessions
+// Tracks user sessions with device fingerprinting and security
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String
+  practiceId   String
+  sessionToken String   @unique
+  deviceInfo   Json? // Browser, OS, device fingerprint
+  ipAddress    String?
+  userAgent    String?
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  practice Practice @relation(fields: [practiceId], references: [id])
+
+  @@index([userId, expiresAt])
+  @@index([practiceId, lastActivity])
+  @@map("user_sessions")
+}
+
+// ============================================================================
+// AI MODEL METRICS & PREDICTIVE INSIGHTS
+// ============================================================================
+// AI Model Metrics
+// Tracks performance metrics for AI models
+model AIModelMetrics {
+  id            String   @id @default(cuid())
+  practiceId    String
+  modelType     String // reconciliation, prediction, etc.
+  modelVersion  String
+  accuracy      Float
+  precision     Float
+  recall        Float
+  f1Score       Float
+  trainingTime  Int? // in seconds
+  inferenceTime Float? // average in milliseconds
+  dataPoints    Int
+  createdAt     DateTime @default(now())
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+
+  @@index([practiceId, modelType])
+  @@map("ai_model_metrics")
+}
+
+// Predictive Insights
+// Stores AI-generated predictive insights and recommendations
+model PredictiveInsight {
+  id          String    @id @default(cuid())
+  practiceId  String
+  type        String // revenue, churn, demand, etc.
+  title       String
+  description String
+  confidence  Float // 0-1
+  impact      String // high, medium, low
+  timeframe   String // 30d, 60d, 90d, etc.
+  data        Json // Prediction data and factors
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+
+  @@index([practiceId, type])
+  @@index([practiceId, isActive])
+  @@map("predictive_insights")
+}
+
+// ============================================================================
+// ENHANCED REPORTING MODELS
+// ============================================================================
+// Report Schedule
+// Manages recurring report generation schedules
+model ReportSchedule {
+  id          String       @id @default(cuid())
+  practiceId  String
+  userId      String
+  name        String
+  description String?
+  frequency   String // daily, weekly, monthly
+  dayOfWeek   Int? // 0-6 for weekly
+  dayOfMonth  Int? // 1-31 for monthly
+  time        String // HH:MM format
+  recipients  Json // Array of email addresses
+  reportType  String // performance, reconciliation, etc.
+  format      ReportFormat @default(PDF)
+  isActive    Boolean      @default(true)
+  lastRun     DateTime?
+  nextRun     DateTime
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  practice         Practice        @relation(fields: [practiceId], references: [id])
+  user             User            @relation(fields: [userId], references: [id])
+  ReportTemplate   ReportTemplate? @relation(fields: [reportTemplateId], references: [id])
+  reportTemplateId String?
+
+  @@index([practiceId, isActive])
+  @@index([nextRun])
+  @@map("report_schedules")
+}
+
+// ============================================================================
+// BUSINESS INTELLIGENCE MODELS
+// ============================================================================
+// Business Intelligence Dashboard
+// Stores dashboard configurations and layouts
+model BIDashboard {
+  id          String   @id @default(cuid())
+  practiceId  String
+  userId      String
+  name        String
+  description String?
+  layout      Json // Dashboard layout configuration
+  isDefault   Boolean  @default(false)
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  practice Practice   @relation(fields: [practiceId], references: [id])
+  user     User       @relation(fields: [userId], references: [id])
+  widgets  BIWidget[]
+
+  @@index([practiceId, userId])
+  @@index([practiceId, isDefault])
+  @@map("bi_dashboards")
+}
+
+// Business Intelligence Widget
+// Stores widget configurations and data sources
+model BIWidget {
+  id              String   @id @default(cuid())
+  dashboardId     String
+  type            String // chart, metric, table, etc.
+  title           String
+  config          Json // Widget configuration
+  position        Json // x, y, width, height
+  dataSource      String // API endpoint or query
+  refreshInterval Int? // in seconds
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dashboard BIDashboard @relation(fields: [dashboardId], references: [id])
+
+  @@index([dashboardId])
+  @@map("bi_widgets")
+}
+
+// ============================================================================
+// INTEGRATION & COMMUNICATION MODELS
+// ============================================================================
+// Communication Engine
+// Manages email, SMS, and push notifications
+model CommunicationTemplate {
+  id         String   @id @default(cuid())
+  practiceId String
+  name       String
+  type       String // email, sms, push
+  subject    String?
+  content    String
+  variables  Json? // Template variables
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  practice Practice           @relation(fields: [practiceId], references: [id])
+  logs     CommunicationLog[]
+
+  @@index([practiceId, type])
+  @@index([practiceId, active])
+  @@map("communication_templates")
+}
+
+model CommunicationLog {
+  id          String    @id @default(cuid())
+  templateId  String
+  recipient   String
+  type        String // email, sms, push
+  status      String // sent, delivered, failed
+  sentAt      DateTime  @default(now())
+  deliveredAt DateTime?
+  metadata    Json? // Additional delivery metadata
+
+  template CommunicationTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([templateId, type])
+  @@index([templateId, status])
+  @@index([sentAt])
+  @@map("communication_logs")
+}
+
+// Enhanced Security and Compliance Models
+model SecurityAudit {
+  id         String   @id @default(cuid())
+  practiceId String
+  userId     String?
+  action     String // login, logout, data_access, etc.
+  resource   String? // API endpoint, data type, etc.
+  ipAddress  String?
+  userAgent  String?
+  success    Boolean
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+  user     User?    @relation(fields: [userId], references: [id])
+
+  @@index([practiceId, userId])
+  @@index([practiceId, action])
+  @@map("security_audits")
+}
+
+model ComplianceCheck {
+  id         String   @id @default(cuid())
+  practiceId String
+  checkType  String // hipaa, gdpr, pci, etc.
+  status     String // pass, fail, warning
+  details    Json
+  checkedAt  DateTime @default(now())
+  nextCheck  DateTime
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+
+  @@index([practiceId, checkType])
+  @@map("compliance_checks")
+}
+
+// Enhanced Integration Models
+model ThirdPartyIntegration {
+  id         String    @id @default(cuid())
+  practiceId String
+  name       String // stripe, twilio, sendgrid, etc.
+  type       String // payment, communication, analytics, etc.
+  config     Json // Integration configuration
+  status     String // active, inactive, error
+  lastSync   DateTime?
+  errorCount Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  practice Practice   @relation(fields: [practiceId], references: [id])
+  DataSync DataSync[]
+
+  @@index([practiceId, name])
+  @@map("third_party_integrations")
+}
+
+model DataSync {
+  id               String    @id @default(cuid())
+  practiceId       String
+  integrationId    String
+  syncType         String // full, incremental
+  status           String // running, completed, failed
+  recordsProcessed Int       @default(0)
+  recordsFailed    Int       @default(0)
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+  error            String?
+
+  practice    Practice              @relation(fields: [practiceId], references: [id])
+  integration ThirdPartyIntegration @relation(fields: [integrationId], references: [id])
+
+  @@index([practiceId, integrationId])
+  @@map("data_syncs")
+}
+
+// Enhanced Notification System
+model Notification {
+  id         String    @id @default(cuid())
+  practiceId String
+  userId     String
+  type       String // system, appointment, payment, etc.
+  title      String
+  message    String
+  priority   String // low, medium, high, urgent
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  actionUrl  String?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([practiceId, userId])
+  @@index([practiceId, type])
+  @@map("notifications")
+}
+
+// Enhanced Workflow and Automation
+model Workflow {
+  id          String   @id @default(cuid())
+  practiceId  String
+  name        String
+  description String?
+  trigger     String // event, schedule, manual
+  conditions  Json // Workflow conditions
+  actions     Json // Workflow actions
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  practice   Practice            @relation(fields: [practiceId], references: [id])
+  executions WorkflowExecution[]
+
+  @@index([practiceId, name])
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          String    @id @default(cuid())
+  workflowId  String
+  status      String // running, completed, failed
+  input       Json?
+  output      Json?
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  error       String?
+
+  workflow Workflow @relation(fields: [workflowId], references: [id])
+
+  @@index([workflowId, status])
+  @@map("workflow_executions")
+}
+
+// Enhanced Analytics and Reporting
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  practiceId String
+  userId     String?
+  eventType  String // page_view, button_click, form_submit, etc.
+  eventName  String
+  properties Json?
+  timestamp  DateTime @default(now())
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+  user     User?    @relation(fields: [userId], references: [id])
+
+  @@index([practiceId, eventType])
+  @@map("analytics_events")
+}
+
+model PerformanceMetric {
+  id         String   @id @default(cuid())
+  practiceId String
+  metricType String // api_response_time, page_load_time, etc.
+  value      Float
+  unit       String // ms, seconds, percentage, etc.
+  context    Json? // Additional context
+  timestamp  DateTime @default(now())
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+
+  @@index([practiceId, metricType])
+  @@map("performance_metrics")
+}
+
+// Enhanced Client Management
+model ClientNote {
+  id        String   @id @default(cuid())
+  clientId  String
+  userId    String
+  noteType  String // general, medical, preference, etc.
+  content   String
+  isPrivate Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([clientId, noteType])
+  @@map("client_notes")
+}
+
+model ClientTag {
+  id          String   @id @default(cuid())
+  practiceId  String
+  name        String
+  color       String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  practice Practice @relation(fields: [practiceId], references: [id])
+  clients  Client[]
+
+  @@index([practiceId, name])
+  @@map("client_tags")
+}
+
+model Tenant {
+  id                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String
+  domain               String           @unique
+  subscriptionTier     SubscriptionTier @default(CORE) @map("subscription_tier")
+  stripeCustomerId     String?          @map("stripe_customer_id")
+  stripeSubscriptionId String?          @map("stripe_subscription_id")
+
+  // Subscription limits
+  clientLimit   Int @map("client_limit")
+  userLimit     Int @map("user_limit")
+  locationLimit Int @map("location_limit")
+  apiCallLimit  Int @map("api_call_limit")
+
+  // Usage tracking
+  currentClients  Int @default(0) @map("current_clients")
+  currentUsers    Int @default(0) @map("current_users")
+  currentApiCalls Int @default(0) @map("current_api_calls")
+
+  // Subscription metadata
+  subscriptionStatus SubscriptionStatus @default(INACTIVE) @map("subscription_status")
+  trialEndDate       DateTime?          @map("trial_end_date")
+  currentPeriodStart DateTime?          @map("current_period_start")
+  currentPeriodEnd   DateTime?          @map("current_period_end")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  clients             Client[]
+  users               User[]
+  usageRecords        SubscriptionUsage[]
+  auditLogs           RegistrationAuditLog[]
+  autonomousDecisions AutonomousDecision[]
+
+  @@map("tenants")
+}
+
+model SubscriptionUsage {
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String           @map("tenant_id") @db.Uuid
+  resourceType String           @map("resource_type")
+  usageCount   BigInt           @default(0) @map("usage_count")
+  periodStart  DateTime         @map("period_start")
+  periodEnd    DateTime         @map("period_end")
+  tier         SubscriptionTier
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, resourceType, periodStart])
+  @@index([tenantId, periodStart(sort: Desc)])
+  @@map("subscription_usage")
+}
+
+model RegistrationAuditLog {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String  @map("tenant_id") @db.Uuid
+  clientId String? @map("client_id") @db.Uuid
+  action   String
+  userId   String? @map("user_id") @db.Uuid
+
+  // Decision metadata
+  autonomousDecision Boolean  @map("autonomous_decision")
+  confidenceScore    Decimal? @map("confidence_score") @db.Decimal(5, 4)
+  biasScore          Decimal? @map("bias_score") @db.Decimal(5, 4)
+  processingTimeMs   Int?     @map("processing_time_ms")
+
+  // Request context
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+  sessionId String? @map("session_id")
+
+  // Compliance
+  phiAccessed    Boolean  @default(false) @map("phi_accessed")
+  auditTimestamp DateTime @default(now()) @map("audit_timestamp")
+  blockchainHash String?  @map("blockchain_hash")
+
+  // Relations
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  client Client? @relation(fields: [clientId], references: [id])
+
+  @@index([tenantId, auditTimestamp(sort: Desc)])
+  @@index([clientId])
+  @@index([autonomousDecision])
+  @@map("registration_audit_log")
+}
+
+model AutonomousDecision {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId String  @map("tenant_id") @db.Uuid
+  clientId String? @map("client_id") @db.Uuid
+
+  // Decision metadata
+  decisionType     AutonomousDecisionType @map("decision_type")
+  confidenceScore  Decimal                @map("confidence_score") @db.Decimal(5, 4)
+  biasScore        Decimal?               @map("bias_score") @db.Decimal(5, 4)
+  processingTimeMs Int                    @map("processing_time_ms")
+
+  // AI model information
+  modelVersion      String @map("model_version")
+  modelFeatures     Json   @map("model_features")
+  decisionReasoning String @map("decision_reasoning")
+
+  // Bias detection
+  biasDetectionStatus   BiasDetectionStatus @default(SAFE) @map("bias_detection_status")
+  biasMitigationApplied Boolean             @default(false) @map("bias_mitigation_applied")
+
+  // Performance tracking
+  latencyMs     Int @map("latency_ms")
+  throughputTps Int @map("throughput_tps")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  client Client? @relation(fields: [clientId], references: [id])
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@index([decisionType])
+  @@index([confidenceScore(sort: Desc)])
+  @@map("autonomous_decisions")
+}

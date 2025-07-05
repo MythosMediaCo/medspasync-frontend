@@ -1,0 +1,175 @@
+# netlify.toml - MedSpaSync Pro Marketing Site
+# Fixed configuration to resolve CSP and font loading issues
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  
+  [build.environment]
+    NODE_VERSION = "18.19.1"
+    NPM_VERSION = "10.2.4"
+    GENERATE_SOURCEMAP = "false"
+    VITE_PLATFORM_NAME = "MedSpaSync Pro"
+    VITE_CONTACT_EMAIL = "support@medspasyncpro.com"
+
+# Build processing configuration
+[build.processing]
+  skip_processing = false
+
+  [build.processing.css]
+    bundle = true
+    minify = true
+
+  [build.processing.js]
+    bundle = true
+    minify = true
+
+  [build.processing.html]
+    pretty_urls = true
+
+  [build.processing.images]
+    compress = true
+
+# Redirect rules
+[[redirects]]
+  from = "/reconciliation"
+  to = "/features"
+  status = 301
+
+[[redirects]]
+  from = "/try"
+  to = "https://demo.medspasyncpro.com"
+  status = 302
+
+[[redirects]]
+  from = "/app"
+  to = "https://demo.medspasyncpro.com"
+  status = 302
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://api.medspasyncpro.com/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/contact-submit"
+  to = "/.netlify/functions/contact"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Fixed headers - Remove Google Fonts CSP violation
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    X-DNS-Prefetch-Control = "on"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    
+    # Fixed Content Security Policy - Allow self-hosted fonts only
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://status.medspasyncpro.com; connect-src 'self' https://api.medspasyncpro.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+    
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Font files with correct MIME types
+[[headers]]
+  for = "*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "font/woff2"
+
+[[headers]]
+  for = "*.woff"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
+    Content-Type = "font/woff"
+
+# JavaScript modules with correct MIME type
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "application/javascript"
+
+[[headers]]
+  for = "*.jsx"
+  [headers.values]
+    Content-Type = "application/javascript"
+
+# CSS files
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Content-Type = "text/css"
+
+# Static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.{png,jpg,jpeg,gif,svg,webp,avif,ico}"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type = "application/manifest+json"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type = "application/xml"
+
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+    Content-Type = "text/plain"
+
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+# Function configuration
+[functions]
+  directory = "netlify/functions"
+
+# Context configurations
+[context.production]
+  command = "npm run build"
+  
+  [context.production.environment]
+    VITE_GA_TRACKING_ID = "G-XXXXXXXXXX"
+    VITE_HOTJAR_ID = "XXXXXXX"
+
+[context.deploy-preview]
+  command = "npm run build"
+  
+  [context.deploy-preview.environment]
+    VITE_ROBOTS_NOINDEX = "true"
+
+[context.branch-deploy]
+  command = "npm run build"

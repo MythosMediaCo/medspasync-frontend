@@ -1,0 +1,26 @@
+{
+  "id": "acme-spa",
+  "profile": {
+    "name": "Sample Medical Spa",
+    "contactName": "Dr. John Smith",
+    "email": "john.smith@samplemedspa.com",
+    "revenue": 2500000,
+    "locations": 1,
+    "staff": 10,
+    "treatments": [
+      "Botox",
+      "Juvederm",
+      "CoolSculpting",
+      "Hydrafacials"
+    ]
+  },
+  "created": "2025-07-03T22:12:27.311Z",
+  "status": "onboarding",
+  "demos": [
+    "demo_acme-spa_1751580764741"
+  ],
+  "onboarding": "onboarding_acme-spa_1751581213738",
+  "followUps": [
+    "followup_acme-spa_1751581216993"
+  ]
+}

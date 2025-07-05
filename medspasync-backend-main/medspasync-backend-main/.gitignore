@@ -1,0 +1,39 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs
+*.log
+*.log.*
+
+# Environment
+.env
+.env.*
+!.env.example
+!.env.production
+
+# Build output
+dist/
+build/
+
+# Prisma
+prisma/migrations/
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# Other
+*.tgz
+.cache/
+*.sqlite
+*.sqlite3
+coverage/
+__pycache__/

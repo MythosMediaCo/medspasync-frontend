@@ -1,0 +1,12 @@
+[phases.setup]
+NIXPACKS_NODE_VERSION = "18"
+NIXPACKS_YARN_CACHE = "false"
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npx prisma generate", "npm run build"]
+
+[start]
+cmd = "npm start"

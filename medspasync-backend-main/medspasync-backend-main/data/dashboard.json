@@ -1,0 +1,27 @@
+{
+  "generated": "2025-07-03T22:20:07.028Z",
+  "summary": {
+    "totalCustomers": 1,
+    "activeDemos": 1,
+    "activeOnboarding": 0,
+    "conversionRate": "0.0"
+  },
+  "customers": [
+    {
+      "id": "acme-spa",
+      "name": "Sample Medical Spa",
+      "status": "prospect",
+      "demos": 1,
+      "lastActivity": "2025-07-03T22:12:27.311Z"
+    }
+  ],
+  "recentDemos": [
+    {
+      "id": "demo_acme-spa_1751580764741",
+      "customerId": "acme-spa",
+      "scheduledFor": "2025-07-04T22:12:44.739Z",
+      "status": "scheduled"
+    }
+  ],
+  "recentOnboarding": []
+}

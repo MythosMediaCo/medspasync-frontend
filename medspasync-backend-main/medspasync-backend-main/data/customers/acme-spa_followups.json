@@ -1,0 +1,12 @@
+[
+  {
+    "id": "followup_acme-spa_1751581216993",
+    "customerId": "acme-spa",
+    "type": "post-demo",
+    "sent": "2025-07-03T22:20:16.993Z",
+    "content": {
+      "subject": "MedSpa Analytics Pro Demo - Next Steps",
+      "body": "\nDear Dr. John Smith,\n\nThank you for attending your MedSpa Analytics Pro demo! We hope you found the session valuable and can see how our platform can transform Sample Medical Spa.\n\n**Key Benefits for Your Practice:**\n- Revenue optimization for your $2.5M practice\n- Time savings of 18+ hours per week on reconciliation\n- 94.7% accurate revenue predictions\n- Real-time insights and alerts\n\n**Next Steps:**\n1. Schedule a technical deep-dive (30 minutes)\n2. Receive your custom proposal\n3. Begin onboarding process\n\n**Resources:**\n- Demo recording: [Link]\n- Technical specifications: [Link]\n- ROI calculator: [Link]\n\nWould you like to schedule your technical deep-dive this week?\n\nBest regards,\nThe MedSpa Analytics Pro Team\n        "
+    }
+  }
+]

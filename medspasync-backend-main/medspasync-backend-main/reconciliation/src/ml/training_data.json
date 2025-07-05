@@ -1,0 +1,44 @@
+[
+  {
+    "reward_transaction": {
+      "id": "alle_123",
+      "customer_name": "Jane Smith",
+      "phone": "2085551234",
+      "email": "jane@example.com",
+      "amount": 120.00,
+      "timestamp": "2025-06-05T14:30:00",
+      "service": "Botox"
+    },
+    "pos_transaction": {
+      "id": "pos_987",
+      "customer_name": "J. Smith",
+      "phone": "2085551234",
+      "email": "jane.s@example.com",
+      "amount": 119.00,
+      "timestamp": "2025-06-05T14:42:00",
+      "service": "Botox Treatment"
+    },
+    "is_match": true
+  },
+  {
+    "reward_transaction": {
+      "id": "asp_456",
+      "customer_name": "Mike Lee",
+      "phone": "2083334567",
+      "email": "mike.lee@example.com",
+      "amount": 200.00,
+      "timestamp": "2025-06-04T10:00:00",
+      "service": "Fillers"
+    },
+    "pos_transaction": {
+      "id": "pos_654",
+      "customer_name": "Michelle Li",
+      "phone": "2082229999",
+      "email": "mli@example.com",
+      "amount": 215.00,
+      "timestamp": "2025-06-06T10:30:00",
+      "service": "Facial"
+    },
+    "is_match": false
+  }
+]
